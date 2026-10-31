@@ -70,22 +70,19 @@ class _JadiButiWidgetState extends State<JadiButiWidget> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             color: const Color.fromARGB(255, 202, 211, 216),
-            
           ),
-          child:
-               SizedBox(
-                width:double.infinity,
-                 child: const Text(
-                    "Jadi Buti Recommendations",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: Color.fromARGB(255, 67, 66, 66),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-               ),
-              
+          child: SizedBox(
+            width: double.infinity,
+            child: const Text(
+              "Jadi Buti Recommendations",
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: Color.fromARGB(255, 67, 66, 66),
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 2),
 
@@ -137,17 +134,14 @@ class _JadiButiWidgetState extends State<JadiButiWidget> {
                       fit: StackFit.expand,
                       children: [
                         // Background Image
-                        Image.asset(
-                          herb['image']!,
-                          fit: BoxFit.cover,
-                        ),
+                        Image.asset(herb['image']!, fit: BoxFit.cover),
                         // Dark Overlay for Text
                         Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
                                 Colors.black.withOpacity(0.55),
-                                Colors.transparent
+                                Colors.transparent,
                               ],
                               begin: Alignment.bottomCenter,
                               end: Alignment.topCenter,

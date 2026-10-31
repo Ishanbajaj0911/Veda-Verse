@@ -1,0 +1,837 @@
+{
+ "name": "veda_verse_dosha_classifier",
+ "version": 2,
+ "trained_on": "2026-10-31",
+ "algorithm": "multinomial logistic regression (softmax), soft constitution targets, adaptive tie-breakers",
+ "classes": [
+  "Vata",
+  "Pitta",
+  "Kapha"
+ ],
+ "n_questions": 30,
+ "options_per_question": 3,
+ "n_features": 126,
+ "feature_layout": "base: one_hot[q*3 + option]; tie-breaker: one_hot[90 + bank*12 + j*2 + option]",
+ "confidence_threshold": 0.7,
+ "test_accuracy_stage1": 0.8878,
+ "test_accuracy_adaptive": 0.8975,
+ "test_mix_mae": 0.0827,
+ "tiebreaker_rate": 0.4565,
+ "intercept": [
+  -1.2e-05,
+  0.00013,
+  9.9e-05
+ ],
+ "coef": [
+  [
+   0.149563,
+   -0.076497,
+   -0.073211,
+   0.116311,
+   -0.063656,
+   -0.052802,
+   0.063454,
+   -0.02227,
+   -0.04133,
+   0.137014,
+   -0.074703,
+   -0.062456,
+   0.077861,
+   -0.037139,
+   -0.040869,
+   0.148507,
+   -0.064117,
+   -0.084536,
+   0.090942,
+   -0.053083,
+   -0.038004,
+   0.087924,
+   -0.045727,
+   -0.042343,
+   0.11507,
+   -0.064872,
+   -0.050341,
+   0.104914,
+   -0.05052,
+   -0.054542,
+   0.089666,
+   -0.047621,
+   -0.042192,
+   0.110225,
+   -0.055791,
+   -0.054579,
+   0.120202,
+   -0.065111,
+   -0.055238,
+   0.131409,
+   -0.069269,
+   -0.062287,
+   0.111245,
+   -0.059018,
+   -0.052375,
+   0.093513,
+   -0.049246,
+   -0.044415,
+   0.104108,
+   -0.050441,
+   -0.053814,
+   0.117871,
+   -0.059767,
+   -0.058251,
+   0.102328,
+   -0.052737,
+   -0.049738,
+   0.110609,
+   -0.056572,
+   -0.054184,
+   0.104079,
+   -0.045623,
+   -0.058603,
+   0.111903,
+   -0.053795,
+   -0.058254,
+   0.085443,
+   -0.031187,
+   -0.054404,
+   0.101628,
+   -0.053837,
+   -0.047936,
+   0.061104,
+   -0.031129,
+   -0.030121,
+   0.066953,
+   -0.020676,
+   -0.046422,
+   0.049558,
+   -0.015786,
+   -0.033918,
+   0.134595,
+   -0.064932,
+   -0.069809,
+   0.093841,
+   -0.044119,
+   -0.049868,
+   0.073148,
+   -0.036309,
+   -0.036988,
+   0.041118,
+   -0.032371,
+   0.04222,
+   -0.033473,
+   0.038795,
+   -0.030048,
+   0.037036,
+   -0.028289,
+   0.056503,
+   -0.047756,
+   0.052162,
+   -0.043415,
+   -0.00191,
+   -0.015833,
+   -0.012887,
+   -0.004856,
+   -0.007166,
+   -0.010577,
+   -0.004458,
+   -0.013285,
+   -0.002964,
+   -0.014779,
+   -0.004802,
+   -0.012941,
+   0.042992,
+   -0.034218,
+   0.056398,
+   -0.047624,
+   0.050331,
+   -0.041556,
+   0.043111,
+   -0.034337,
+   0.048214,
+   -0.039439,
+   0.054539,
+   -0.045765
+  ],
+  [
+   -0.075424,
+   0.141735,
+   -0.066212,
+   -0.052766,
+   0.117406,
+   -0.064539,
+   -0.027993,
+   0.074744,
+   -0.046651,
+   -0.065947,
+   0.137617,
+   -0.07157,
+   -0.032389,
+   0.072078,
+   -0.039587,
+   -0.077515,
+   0.140957,
+   -0.063342,
+   -0.051023,
+   0.098174,
+   -0.047051,
+   -0.036109,
+   0.08148,
+   -0.04527,
+   -0.056753,
+   0.112311,
+   -0.055459,
+   -0.054467,
+   0.106345,
+   -0.051777,
+   -0.044772,
+   0.094634,
+   -0.049761,
+   -0.056885,
+   0.104632,
+   -0.047648,
+   -0.063309,
+   0.127943,
+   -0.064533,
+   -0.072398,
+   0.141647,
+   -0.069149,
+   -0.058515,
+   0.117303,
+   -0.058686,
+   -0.04864,
+   0.088772,
+   -0.040031,
+   -0.053995,
+   0.104645,
+   -0.05055,
+   -0.060752,
+   0.126225,
+   -0.065372,
+   -0.053859,
+   0.114897,
+   -0.060937,
+   -0.051885,
+   0.107053,
+   -0.055067,
+   -0.055016,
+   0.096483,
+   -0.041367,
+   -0.050953,
+   0.104276,
+   -0.053224,
+   -0.047736,
+   0.077063,
+   -0.029226,
+   -0.044842,
+   0.09896,
+   -0.054017,
+   -0.024537,
+   0.057091,
+   -0.032453,
+   -0.028674,
+   0.055617,
+   -0.026845,
+   -0.027311,
+   0.044518,
+   -0.017107,
+   -0.063612,
+   0.13304,
+   -0.069328,
+   -0.05099,
+   0.097728,
+   -0.046637,
+   -0.0439,
+   0.086132,
+   -0.042132,
+   -0.03968,
+   0.049516,
+   -0.040347,
+   0.050182,
+   -0.030667,
+   0.040503,
+   -0.032892,
+   0.042727,
+   -0.028638,
+   0.038473,
+   -0.042184,
+   0.05202,
+   0.038635,
+   -0.029073,
+   0.040226,
+   -0.030663,
+   0.053151,
+   -0.043589,
+   0.0399,
+   -0.030337,
+   0.038108,
+   -0.028546,
+   0.053912,
+   -0.044349,
+   -0.005534,
+   -0.013186,
+   -0.014236,
+   -0.004485,
+   -0.004456,
+   -0.014264,
+   -0.003676,
+   -0.015045,
+   -0.015328,
+   -0.003392,
+   -0.026197,
+   0.007476
+  ],
+  [
+   -0.074138,
+   -0.065239,
+   0.139423,
+   -0.063544,
+   -0.053751,
+   0.117341,
+   -0.035461,
+   -0.052474,
+   0.087979,
+   -0.071065,
+   -0.062914,
+   0.134025,
+   -0.045473,
+   -0.03494,
+   0.080457,
+   -0.070992,
+   -0.076839,
+   0.147877,
+   -0.039919,
+   -0.045091,
+   0.085057,
+   -0.051814,
+   -0.035755,
+   0.087614,
+   -0.058315,
+   -0.047439,
+   0.105798,
+   -0.050447,
+   -0.055825,
+   0.106318,
+   -0.044896,
+   -0.047014,
+   0.091954,
+   -0.053341,
+   -0.048843,
+   0.102228,
+   -0.056892,
+   -0.062833,
+   0.119771,
+   -0.059012,
+   -0.072379,
+   0.131437,
+   -0.052729,
+   -0.058285,
+   0.111059,
+   -0.044874,
+   -0.039527,
+   0.084446,
+   -0.050114,
+   -0.054204,
+   0.104364,
+   -0.057119,
+   -0.066458,
+   0.123622,
+   -0.048469,
+   -0.062161,
+   0.110676,
+   -0.058722,
+   -0.050482,
+   0.109249,
+   -0.049062,
+   -0.05086,
+   0.099967,
+   -0.06095,
+   -0.050483,
+   0.111477,
+   -0.037708,
+   -0.045877,
+   0.08363,
+   -0.056788,
+   -0.045122,
+   0.101955,
+   -0.036566,
+   -0.025962,
+   0.062572,
+   -0.03828,
+   -0.034943,
+   0.073268,
+   -0.022248,
+   -0.028731,
+   0.051024,
+   -0.070982,
+   -0.068108,
+   0.139137,
+   -0.042852,
+   -0.053606,
+   0.096505,
+   -0.029251,
+   -0.049823,
+   0.07912,
+   -0.001438,
+   -0.017144,
+   -0.001874,
+   -0.016709,
+   -0.008128,
+   -0.010455,
+   -0.004144,
+   -0.014439,
+   -0.027866,
+   0.009283,
+   -0.009977,
+   -0.008605,
+   -0.036725,
+   0.044906,
+   -0.027339,
+   0.035519,
+   -0.045986,
+   0.054166,
+   -0.035443,
+   0.043623,
+   -0.035144,
+   0.043324,
+   -0.04911,
+   0.05729,
+   -0.037458,
+   0.047404,
+   -0.042162,
+   0.052109,
+   -0.045874,
+   0.05582,
+   -0.039436,
+   0.049382,
+   -0.032885,
+   0.042832,
+   -0.028343,
+   0.03829
+  ]
+ ],
+ "question_importance": [
+  0.0468,
+  0.0381,
+  0.0246,
+  0.0444,
+  0.025,
+  0.0475,
+  0.0298,
+  0.0279,
+  0.0362,
+  0.0345,
+  0.03,
+  0.0344,
+  0.04,
+  0.0439,
+  0.0369,
+  0.029,
+  0.034,
+  0.0399,
+  0.0356,
+  0.0355,
+  0.0326,
+  0.0356,
+  0.0267,
+  0.0329,
+  0.0196,
+  0.0213,
+  0.0158,
+  0.0442,
+  0.0313,
+  0.0259
+ ],
+ "questions": [
+  {
+   "title": "Body Frame",
+   "options": [
+    "Thin/Lanky",
+    "Medium",
+    "Well Built"
+   ]
+  },
+  {
+   "title": "Type of Hair",
+   "options": [
+    "Dry/Splits",
+    "Normal/Thin",
+    "Greasy/Heavy"
+   ]
+  },
+  {
+   "title": "Color of Hair",
+   "options": [
+    "Pale Brown",
+    "Red/Brown",
+    "Jet Black"
+   ]
+  },
+  {
+   "title": "Skin",
+   "options": [
+    "Dry/Rough",
+    "Soft/Sweating/Acne",
+    "Moist/Greasy"
+   ]
+  },
+  {
+   "title": "Complexion",
+   "options": [
+    "Dark/Blackish",
+    "Pink/Red",
+    "Glowing/White"
+   ]
+  },
+  {
+   "title": "Body Weight",
+   "options": [
+    "Low/Hard to gain",
+    "Medium/Easily changes",
+    "Overweight/Hard to lose"
+   ]
+  },
+  {
+   "title": "Nails",
+   "options": [
+    "Blackish/Brittle",
+    "Reddish/Small",
+    "Bluish/Smooth"
+   ]
+  },
+  {
+   "title": "Teeth",
+   "options": [
+    "Irregular/Protruding",
+    "Medium/Yellowish",
+    "Strong/White"
+   ]
+  },
+  {
+   "title": "Pace of Work",
+   "options": [
+    "Fast/Hurry",
+    "Medium/Energetic",
+    "Slow/Steady"
+   ]
+  },
+  {
+   "title": "Mental Activity",
+   "options": [
+    "Quick/Restless",
+    "Smart/Aggressive",
+    "Calm/Stable"
+   ]
+  },
+  {
+   "title": "Memory",
+   "options": [
+    "Short term bad",
+    "Good",
+    "Long term is best"
+   ]
+  },
+  {
+   "title": "Grasping Power",
+   "options": [
+    "Quick but forgets",
+    "Sharp",
+    "Slow but retains"
+   ]
+  },
+  {
+   "title": "Sleep Pattern",
+   "options": [
+    "Interrupted/Less",
+    "Moderate",
+    "Sleepy/Lazy"
+   ]
+  },
+  {
+   "title": "Weather Intolerance",
+   "options": [
+    "Cold",
+    "Heat",
+    "Cold & Damp"
+   ]
+  },
+  {
+   "title": "Reactions Under Stress",
+   "options": [
+    "Anxiety/Worry",
+    "Anger/Aggression",
+    "Calm/Depressive"
+   ]
+  },
+  {
+   "title": "Mood",
+   "options": [
+    "Changes quickly",
+    "Intense",
+    "Steady"
+   ]
+  },
+  {
+   "title": "Eating Habit",
+   "options": [
+    "Irregular",
+    "Regular/Strong",
+    "Slow/Steady"
+   ]
+  },
+  {
+   "title": "Hunger",
+   "options": [
+    "Variable",
+    "Sharp/Cannot skip",
+    "Mild/Can skip"
+   ]
+  },
+  {
+   "title": "Body Temperature",
+   "options": [
+    "Cold hands/feet",
+    "Warm",
+    "Cool/Normal"
+   ]
+  },
+  {
+   "title": "Joints",
+   "options": [
+    "Cracking/Prominent",
+    "Loose/Flexible",
+    "Large/Well-knit"
+   ]
+  },
+  {
+   "title": "Nature",
+   "options": [
+    "Timid/Fearful",
+    "Egoistic/Impatient",
+    "Forgiving/Peaceful"
+   ]
+  },
+  {
+   "title": "Body Energy",
+   "options": [
+    "Comes in bursts",
+    "Moderate",
+    "Steady/High stamina"
+   ]
+  },
+  {
+   "title": "Eyeball",
+   "options": [
+    "Unsteady/Fast moving",
+    "Moving slowly",
+    "Steady"
+   ]
+  },
+  {
+   "title": "Quality of Voice",
+   "options": [
+    "Rough/Broken words",
+    "Fast/Commanding",
+    "Soft and Deep"
+   ]
+  },
+  {
+   "title": "Dreams",
+   "options": [
+    "Flying/Fearful",
+    "Fire/Violent",
+    "Water/Romantic"
+   ]
+  },
+  {
+   "title": "Social Relations",
+   "options": [
+    "Few/Changing",
+    "Selective/Leaders",
+    "Many/Loyal"
+   ]
+  },
+  {
+   "title": "Wealth",
+   "options": [
+    "Spends quickly",
+    "Spends on luxury",
+    "Saves"
+   ]
+  },
+  {
+   "title": "Bowel Movements",
+   "options": [
+    "Dry/Constipated",
+    "Loose/Frequent",
+    "Regular/Heavy"
+   ]
+  },
+  {
+   "title": "Walking Pace",
+   "options": [
+    "Fast",
+    "Medium/Purposeful",
+    "Slow"
+   ]
+  },
+  {
+   "title": "Communication Skills",
+   "options": [
+    "Talkative/Fast",
+    "Sharp/Convincing",
+    "Slow/Measured"
+   ]
+  }
+ ],
+ "tiebreaker_banks": [
+  {
+   "pair": [
+    "Vata",
+    "Pitta"
+   ],
+   "questions": [
+    {
+     "title": "Temperature",
+     "options": [
+      "Often feel cold, cold hands and feet",
+      "Often feel warm, dislike heat"
+     ]
+    },
+    {
+     "title": "Appetite",
+     "options": [
+      "Irregular, can forget to eat",
+      "Strong, irritable if a meal is missed"
+     ]
+    },
+    {
+     "title": "Skin",
+     "options": [
+      "Dry, thin, rough",
+      "Warm, reddish, prone to rashes or acne"
+     ]
+    },
+    {
+     "title": "Under Stress",
+     "options": [
+      "Worry, anxiety, overthinking",
+      "Irritation, anger, criticism"
+     ]
+    },
+    {
+     "title": "Sleep",
+     "options": [
+      "Light, easily disturbed",
+      "Moderate, may wake feeling hot"
+     ]
+    },
+    {
+     "title": "Speech",
+     "options": [
+      "Fast, jumps between topics",
+      "Sharp, precise, persuasive"
+     ]
+    }
+   ]
+  },
+  {
+   "pair": [
+    "Pitta",
+    "Kapha"
+   ],
+   "questions": [
+    {
+     "title": "Appetite",
+     "options": [
+      "Strong, get hungry and irritable",
+      "Mild, can skip meals easily"
+     ]
+    },
+    {
+     "title": "Body Build",
+     "options": [
+      "Medium, muscular",
+      "Broad, solid, gain weight easily"
+     ]
+    },
+    {
+     "title": "Sweating",
+     "options": [
+      "Sweat easily, even in mild heat",
+      "Sweat little, skin stays cool"
+     ]
+    },
+    {
+     "title": "Pace",
+     "options": [
+      "Driven, competitive, impatient",
+      "Relaxed, steady, hard to hurry"
+     ]
+    },
+    {
+     "title": "Sleep",
+     "options": [
+      "Moderate, 6-7 hours is enough",
+      "Deep and long, hard to wake up"
+     ]
+    },
+    {
+     "title": "Emotions",
+     "options": [
+      "Intense, quick to anger and to forgive",
+      "Calm, slow to anger, hold on to feelings"
+     ]
+    }
+   ]
+  },
+  {
+   "pair": [
+    "Vata",
+    "Kapha"
+   ],
+   "questions": [
+    {
+     "title": "Body Build",
+     "options": [
+      "Thin, light, hard to gain weight",
+      "Solid, heavy, hard to lose weight"
+     ]
+    },
+    {
+     "title": "Energy",
+     "options": [
+      "Bursts of energy, tire quickly",
+      "Steady stamina, slow to get started"
+     ]
+    },
+    {
+     "title": "Mind",
+     "options": [
+      "Restless, many ideas, change quickly",
+      "Calm, steady, dislike change"
+     ]
+    },
+    {
+     "title": "Sleep",
+     "options": [
+      "Light, interrupted",
+      "Heavy, long, sleepy in the day"
+     ]
+    },
+    {
+     "title": "Skin",
+     "options": [
+      "Dry, rough, cool",
+      "Smooth, oily, thick"
+     ]
+    },
+    {
+     "title": "Weather",
+     "options": [
+      "Dislike cold and wind, love warmth",
+      "Dislike damp cold, feel sluggish in it"
+     ]
+    }
+   ]
+  }
+ ]
+}

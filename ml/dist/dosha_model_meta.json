@@ -1,0 +1,738 @@
+{
+ "model_file": "dosha_model.tflite",
+ "version": 2,
+ "trained_on": "2026-10-31",
+ "algorithm": "multinomial logistic regression (softmax), soft constitution targets, adaptive tie-breakers",
+ "test_accuracy_stage1": 0.8878,
+ "test_accuracy_adaptive": 0.8975,
+ "input": {
+  "name": "serving_default_features_one_hot:0",
+  "shape": [
+   1,
+   126
+  ],
+  "dtype": "float32",
+  "base_block": "indices 0..89: one_hot[question_index * 3 + option_index] = 1.0; option_index 0 = option A (Vata), 1 = option B (Pitta), 2 = option C (Kapha)",
+  "tiebreaker_block": "indices 90..125: one_hot[90 + bank_index * 12 + question_index * 2 + option_index] = 1.0; leave the whole block 0 when no tie-breaker round was asked"
+ },
+ "output": {
+  "name": "StatefulPartitionedCall_1:0",
+  "shape": [
+   1,
+   3
+  ],
+  "dtype": "float32",
+  "classes": [
+   "Vata",
+   "Pitta",
+   "Kapha"
+  ],
+  "meaning": "probabilities, sum to 1; index 0 = Vata, 1 = Pitta, 2 = Kapha"
+ },
+ "adaptive_flow": {
+  "confidence_threshold": 0.7,
+  "rule": "run once with the base block only; if max(probs) < confidence_threshold, ask the tie-breaker bank whose pair is the two highest doshas, fill its block and run again"
+ },
+ "type_rule": {
+  "tridoshic_if_every_dosha_at_least": 0.25,
+  "dual_if_second_dosha_at_least": 0.3,
+  "otherwise": "single dominant dosha"
+ },
+ "questions": [
+  {
+   "title": "Body Frame",
+   "options": [
+    "Thin/Lanky",
+    "Medium",
+    "Well Built"
+   ]
+  },
+  {
+   "title": "Type of Hair",
+   "options": [
+    "Dry/Splits",
+    "Normal/Thin",
+    "Greasy/Heavy"
+   ]
+  },
+  {
+   "title": "Color of Hair",
+   "options": [
+    "Pale Brown",
+    "Red/Brown",
+    "Jet Black"
+   ]
+  },
+  {
+   "title": "Skin",
+   "options": [
+    "Dry/Rough",
+    "Soft/Sweating/Acne",
+    "Moist/Greasy"
+   ]
+  },
+  {
+   "title": "Complexion",
+   "options": [
+    "Dark/Blackish",
+    "Pink/Red",
+    "Glowing/White"
+   ]
+  },
+  {
+   "title": "Body Weight",
+   "options": [
+    "Low/Hard to gain",
+    "Medium/Easily changes",
+    "Overweight/Hard to lose"
+   ]
+  },
+  {
+   "title": "Nails",
+   "options": [
+    "Blackish/Brittle",
+    "Reddish/Small",
+    "Bluish/Smooth"
+   ]
+  },
+  {
+   "title": "Teeth",
+   "options": [
+    "Irregular/Protruding",
+    "Medium/Yellowish",
+    "Strong/White"
+   ]
+  },
+  {
+   "title": "Pace of Work",
+   "options": [
+    "Fast/Hurry",
+    "Medium/Energetic",
+    "Slow/Steady"
+   ]
+  },
+  {
+   "title": "Mental Activity",
+   "options": [
+    "Quick/Restless",
+    "Smart/Aggressive",
+    "Calm/Stable"
+   ]
+  },
+  {
+   "title": "Memory",
+   "options": [
+    "Short term bad",
+    "Good",
+    "Long term is best"
+   ]
+  },
+  {
+   "title": "Grasping Power",
+   "options": [
+    "Quick but forgets",
+    "Sharp",
+    "Slow but retains"
+   ]
+  },
+  {
+   "title": "Sleep Pattern",
+   "options": [
+    "Interrupted/Less",
+    "Moderate",
+    "Sleepy/Lazy"
+   ]
+  },
+  {
+   "title": "Weather Intolerance",
+   "options": [
+    "Cold",
+    "Heat",
+    "Cold & Damp"
+   ]
+  },
+  {
+   "title": "Reactions Under Stress",
+   "options": [
+    "Anxiety/Worry",
+    "Anger/Aggression",
+    "Calm/Depressive"
+   ]
+  },
+  {
+   "title": "Mood",
+   "options": [
+    "Changes quickly",
+    "Intense",
+    "Steady"
+   ]
+  },
+  {
+   "title": "Eating Habit",
+   "options": [
+    "Irregular",
+    "Regular/Strong",
+    "Slow/Steady"
+   ]
+  },
+  {
+   "title": "Hunger",
+   "options": [
+    "Variable",
+    "Sharp/Cannot skip",
+    "Mild/Can skip"
+   ]
+  },
+  {
+   "title": "Body Temperature",
+   "options": [
+    "Cold hands/feet",
+    "Warm",
+    "Cool/Normal"
+   ]
+  },
+  {
+   "title": "Joints",
+   "options": [
+    "Cracking/Prominent",
+    "Loose/Flexible",
+    "Large/Well-knit"
+   ]
+  },
+  {
+   "title": "Nature",
+   "options": [
+    "Timid/Fearful",
+    "Egoistic/Impatient",
+    "Forgiving/Peaceful"
+   ]
+  },
+  {
+   "title": "Body Energy",
+   "options": [
+    "Comes in bursts",
+    "Moderate",
+    "Steady/High stamina"
+   ]
+  },
+  {
+   "title": "Eyeball",
+   "options": [
+    "Unsteady/Fast moving",
+    "Moving slowly",
+    "Steady"
+   ]
+  },
+  {
+   "title": "Quality of Voice",
+   "options": [
+    "Rough/Broken words",
+    "Fast/Commanding",
+    "Soft and Deep"
+   ]
+  },
+  {
+   "title": "Dreams",
+   "options": [
+    "Flying/Fearful",
+    "Fire/Violent",
+    "Water/Romantic"
+   ]
+  },
+  {
+   "title": "Social Relations",
+   "options": [
+    "Few/Changing",
+    "Selective/Leaders",
+    "Many/Loyal"
+   ]
+  },
+  {
+   "title": "Wealth",
+   "options": [
+    "Spends quickly",
+    "Spends on luxury",
+    "Saves"
+   ]
+  },
+  {
+   "title": "Bowel Movements",
+   "options": [
+    "Dry/Constipated",
+    "Loose/Frequent",
+    "Regular/Heavy"
+   ]
+  },
+  {
+   "title": "Walking Pace",
+   "options": [
+    "Fast",
+    "Medium/Purposeful",
+    "Slow"
+   ]
+  },
+  {
+   "title": "Communication Skills",
+   "options": [
+    "Talkative/Fast",
+    "Sharp/Convincing",
+    "Slow/Measured"
+   ]
+  }
+ ],
+ "tiebreaker_banks": [
+  {
+   "pair": [
+    "Vata",
+    "Pitta"
+   ],
+   "questions": [
+    {
+     "title": "Temperature",
+     "options": [
+      "Often feel cold, cold hands and feet",
+      "Often feel warm, dislike heat"
+     ]
+    },
+    {
+     "title": "Appetite",
+     "options": [
+      "Irregular, can forget to eat",
+      "Strong, irritable if a meal is missed"
+     ]
+    },
+    {
+     "title": "Skin",
+     "options": [
+      "Dry, thin, rough",
+      "Warm, reddish, prone to rashes or acne"
+     ]
+    },
+    {
+     "title": "Under Stress",
+     "options": [
+      "Worry, anxiety, overthinking",
+      "Irritation, anger, criticism"
+     ]
+    },
+    {
+     "title": "Sleep",
+     "options": [
+      "Light, easily disturbed",
+      "Moderate, may wake feeling hot"
+     ]
+    },
+    {
+     "title": "Speech",
+     "options": [
+      "Fast, jumps between topics",
+      "Sharp, precise, persuasive"
+     ]
+    }
+   ]
+  },
+  {
+   "pair": [
+    "Pitta",
+    "Kapha"
+   ],
+   "questions": [
+    {
+     "title": "Appetite",
+     "options": [
+      "Strong, get hungry and irritable",
+      "Mild, can skip meals easily"
+     ]
+    },
+    {
+     "title": "Body Build",
+     "options": [
+      "Medium, muscular",
+      "Broad, solid, gain weight easily"
+     ]
+    },
+    {
+     "title": "Sweating",
+     "options": [
+      "Sweat easily, even in mild heat",
+      "Sweat little, skin stays cool"
+     ]
+    },
+    {
+     "title": "Pace",
+     "options": [
+      "Driven, competitive, impatient",
+      "Relaxed, steady, hard to hurry"
+     ]
+    },
+    {
+     "title": "Sleep",
+     "options": [
+      "Moderate, 6-7 hours is enough",
+      "Deep and long, hard to wake up"
+     ]
+    },
+    {
+     "title": "Emotions",
+     "options": [
+      "Intense, quick to anger and to forgive",
+      "Calm, slow to anger, hold on to feelings"
+     ]
+    }
+   ]
+  },
+  {
+   "pair": [
+    "Vata",
+    "Kapha"
+   ],
+   "questions": [
+    {
+     "title": "Body Build",
+     "options": [
+      "Thin, light, hard to gain weight",
+      "Solid, heavy, hard to lose weight"
+     ]
+    },
+    {
+     "title": "Energy",
+     "options": [
+      "Bursts of energy, tire quickly",
+      "Steady stamina, slow to get started"
+     ]
+    },
+    {
+     "title": "Mind",
+     "options": [
+      "Restless, many ideas, change quickly",
+      "Calm, steady, dislike change"
+     ]
+    },
+    {
+     "title": "Sleep",
+     "options": [
+      "Light, interrupted",
+      "Heavy, long, sleepy in the day"
+     ]
+    },
+    {
+     "title": "Skin",
+     "options": [
+      "Dry, rough, cool",
+      "Smooth, oily, thick"
+     ]
+    },
+    {
+     "title": "Weather",
+     "options": [
+      "Dislike cold and wind, love warmth",
+      "Dislike damp cold, feel sluggish in it"
+     ]
+    }
+   ]
+  }
+ ],
+ "sample_io": [
+  {
+   "answers": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "tiebreaker_bank": null,
+   "tiebreaker_answers": null,
+   "probs": [
+    0.9802,
+    0.0099,
+    0.0099
+   ]
+  },
+  {
+   "answers": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "tiebreaker_bank": null,
+   "tiebreaker_answers": null,
+   "probs": [
+    0.0101,
+    0.9801,
+    0.0098
+   ]
+  },
+  {
+   "answers": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "tiebreaker_bank": null,
+   "tiebreaker_answers": null,
+   "probs": [
+    0.0095,
+    0.0098,
+    0.9807
+   ]
+  },
+  {
+   "answers": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "tiebreaker_bank": null,
+   "tiebreaker_answers": null,
+   "probs": [
+    0.8567,
+    0.1125,
+    0.0308
+   ]
+  },
+  {
+   "answers": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "tiebreaker_bank": null,
+   "tiebreaker_answers": null,
+   "probs": [
+    0.5765,
+    0.3781,
+    0.0454
+   ]
+  },
+  {
+   "answers": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "tiebreaker_bank": 0,
+   "tiebreaker_answers": [
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "probs": [
+    0.6467,
+    0.3108,
+    0.0425
+   ]
+  },
+  {
+   "answers": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "tiebreaker_bank": 1,
+   "tiebreaker_answers": [
+    1,
+    1,
+    1,
+    0,
+    1,
+    1
+   ],
+   "probs": [
+    0.0398,
+    0.489,
+    0.4711
+   ]
+  }
+ ]
+}

@@ -9,30 +9,26 @@ class TodayPoses extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
- Container(
+        Container(
           margin: const EdgeInsets.symmetric(vertical: 4),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             color: const Color.fromARGB(255, 202, 211, 216),
-            
           ),
-          child:
-               SizedBox(
-                width:double.infinity,
-                 child: const Text(
-                    "Today's Yoga Poses",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: Color.fromARGB(255, 67, 66, 66),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-               ),
-              
+          child: SizedBox(
+            width: double.infinity,
+            child: const Text(
+              "Today's Yoga Poses",
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: Color.fromARGB(255, 67, 66, 66),
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
         ),
-
 
         const SizedBox(height: 1),
 
@@ -60,15 +56,11 @@ class TodayPoses extends StatelessWidget {
                 children: [
                   // Background image
                   Image.asset(
-                    'assets/images/yoga_banner.jpg', 
+                    'assets/images/yoga_banner.jpg',
                     fit: BoxFit.cover,
-                   
                   ),
                   // Dark overlay
-                  Container(
-                    color: Colors.black.withOpacity(0.4),
-                  ),
-                 
+                  Container(color: Colors.black.withOpacity(0.4)),
                 ],
               ),
             ),

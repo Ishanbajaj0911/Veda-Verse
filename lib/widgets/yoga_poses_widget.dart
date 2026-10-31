@@ -16,25 +16,25 @@ class _YogaPosesWidgetState extends State<YogaPosesWidget> {
       'name': 'Tadasana (Mountain Pose)',
       'videoId': 'TmnVRKygyk0',
       'description':
-          'Tadasana improves posture, balance, and calm focus. It forms the base for all standing yoga poses.'
+          'Tadasana improves posture, balance, and calm focus. It forms the base for all standing yoga poses.',
     },
     {
       'name': 'Vrikshasana (Tree Pose)',
       'videoId': 'A9OzH3kYvyU',
       'description':
-          'Vrikshasana strengthens your legs and core while enhancing balance and concentration.'
+          'Vrikshasana strengthens your legs and core while enhancing balance and concentration.',
     },
     {
       'name': 'Bhujangasana (Cobra Pose)',
       'videoId': 'WOmwRyHehAE',
       'description':
-          'Bhujangasana increases spinal flexibility, strengthens the back, and opens the chest for better breathing.'
+          'Bhujangasana increases spinal flexibility, strengthens the back, and opens the chest for better breathing.',
     },
     {
       'name': 'Adho Mukha Svanasana (Downward Dog)',
       'videoId': 'zK1cLctwBsk',
       'description':
-          'Downward Dog stretches your entire body, relieves tension, and improves blood flow to the brain.'
+          'Downward Dog stretches your entire body, relieves tension, and improves blood flow to the brain.',
     },
   ];
 
@@ -53,22 +53,19 @@ class _YogaPosesWidgetState extends State<YogaPosesWidget> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             color: const Color.fromARGB(255, 202, 211, 216),
-            
           ),
-          child:
-               SizedBox(
-                width:double.infinity,
-                 child: const Text(
-                    "Yoga Pose Tutorial",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: Color.fromARGB(255, 67, 66, 66),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-               ),
-              
+          child: SizedBox(
+            width: double.infinity,
+            child: const Text(
+              "Yoga Pose Tutorial",
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: Color.fromARGB(255, 67, 66, 66),
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 6),
 
@@ -110,7 +107,6 @@ class _YogaPosesWidgetState extends State<YogaPosesWidget> {
                     );
                   },
                   child: Card(
-                    
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -129,7 +125,7 @@ class _YogaPosesWidgetState extends State<YogaPosesWidget> {
                             gradient: LinearGradient(
                               colors: [
                                 Colors.black.withOpacity(0.5),
-                                Colors.transparent
+                                Colors.transparent,
                               ],
                               begin: Alignment.bottomCenter,
                               end: Alignment.topCenter,

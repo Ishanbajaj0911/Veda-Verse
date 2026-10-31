@@ -65,6 +65,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - assets/ml/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -92,3 +93,22 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  fonts:
+    - family: Romie
+      fonts:
+        - asset: assets/fonts/Romie-300.otf
+          weight: 300
+        - asset: assets/fonts/Romie-300Italic.otf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/Romie-500.otf
+          weight: 500
+        - asset: assets/fonts/Romie-500Italic.otf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/Romie-700.otf
+          weight: 700
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-Variable.ttf
