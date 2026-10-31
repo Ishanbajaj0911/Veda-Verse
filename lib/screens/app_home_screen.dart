@@ -154,18 +154,18 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
                   _Path(onGo: widget.onGo),
                   const SizedBox(height: 20),
                   // Tiles
-                  GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 171 / 132,
+                  // Rows size to their content so narrow phones and large fonts don't overflow.
+                  Column(
                     children: [
-                      _tile('01', 'Learn', 'Why Ayurveda, in 2 minutes', Vv.plum, Vv.plumPale, Tabs.learn),
-                      _tile('02', 'Dosha', 'Your body type + lab scan', Vv.brown, Vv.goldPale, Tabs.dosha),
-                      _tile('04', 'Yoga', 'Sessions near you or online', Vv.rust, Vv.rustPale, Tabs.yoga),
-                      _tile('05', 'Vaidya', 'Registered experts, 1 tap', Vv.green, Vv.mint, Tabs.vaidya),
+                      _tileRow(
+                        _tile('01', 'Learn', 'Why Ayurveda, in 2 minutes', Vv.plum, Vv.plumPale, Tabs.learn),
+                        _tile('02', 'Dosha', 'Your body type + lab scan', Vv.brown, Vv.goldPale, Tabs.dosha),
+                      ),
+                      const SizedBox(height: 12),
+                      _tileRow(
+                        _tile('04', 'Yoga', 'Sessions near you or online', Vv.rust, Vv.rustPale, Tabs.yoga),
+                        _tile('05', 'Vaidya', 'Registered experts, 1 tap', Vv.green, Vv.mint, Tabs.vaidya),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -266,11 +266,23 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
           w.key == _bleed ? w : Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: w),
       ];
 
+  // Both tiles share the taller one's height, never shorter than the design's 132.
+  Widget _tileRow(Widget a, Widget b) => ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 132),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [Expanded(child: a), const SizedBox(width: 12), Expanded(child: b)],
+          ),
+        ),
+      );
+
   Widget _tile(String n, String name, String line, Color fg, Color tint, int tab) => VvTap(
         onTap: () => widget.onGo(tab),
         child: VvCard(
           padding: const EdgeInsets.all(14),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(

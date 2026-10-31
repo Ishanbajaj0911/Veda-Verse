@@ -49,3 +49,6 @@ app.*.map.json
 /android/app/.cxx/
 /ml/__pycache__/
 /.claude/
+
+# Local secrets (Gemini key for Ayu Buddy)
+env.json

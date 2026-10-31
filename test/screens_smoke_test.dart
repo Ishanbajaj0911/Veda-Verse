@@ -70,10 +70,18 @@ void main() {
   });
 
   setUp(() {
-    // Phone frame used by the design file.
     final v = TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
-    v.physicalSize = const Size(390, 844);
-    v.devicePixelRatio = 1;
+    if (Platform.environment['VV_SMALL'] != null) {
+      // Narrow edge-to-edge Android phone: 360x797 dp with status and gesture bars.
+      v.physicalSize = const Size(1080, 2392);
+      v.devicePixelRatio = 3;
+      v.padding = const FakeViewPadding(top: 96, bottom: 72);
+      v.viewPadding = const FakeViewPadding(top: 96, bottom: 72);
+    } else {
+      // Phone frame used by the design file.
+      v.physicalSize = const Size(390, 844);
+      v.devicePixelRatio = 1;
+    }
   });
 
   testWidgets('01 welcome', (t) => _pump(t, const WelcomeScreen(), '01_welcome'));
@@ -92,6 +100,15 @@ void main() {
   const tabs = ['04_home', '05_learn', '06_dosha', '08_yoga', '09_vaidya', '07_buddy'];
   for (var i = 0; i < tabs.length; i++) {
     testWidgets('tab ${tabs[i]}', (t) => _pump(t, AppShell(initialIndex: i), tabs[i]));
+  }
+  for (var i = 0; i < Tabs.buddy; i++) {
+    testWidgets('floating button opens Ayu Buddy from ${tabs[i]}', (t) async {
+      await _pump(t, AppShell(initialIndex: i), 'fab_${tabs[i]}', act: () async {
+        await t.tap(find.byType(BuddyFab), warnIfMissed: true);
+      });
+      expect(t.state<AppShellState>(find.byType(AppShell)).index, Tabs.buddy);
+      expect(find.byType(BuddyFab), findsNothing);
+    });
   }
   testWidgets('07 buddy voice', (t) => _pump(t, const AppShell(initialIndex: Tabs.buddy), '07_buddy_voice', act: () async {
         await t.tap(find.text('Voice'));

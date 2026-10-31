@@ -41,11 +41,51 @@ class AppShellState extends State<AppShell> {
     ];
     return Scaffold(
       body: VvFrame(
-        child: Column(
+        child: Stack(
           children: [
-            Expanded(child: IndexedStack(index: index, children: pages)),
-            VvNavBar(active: index, onTap: go),
+            Column(
+              children: [
+                Expanded(child: IndexedStack(index: index, children: pages)),
+                VvNavBar(active: index, onTap: go),
+              ],
+            ),
+            // Lives here rather than in the nav bar: a child drawn outside its
+            // parent's bounds doesn't receive taps.
+            if (index != Tabs.buddy)
+              Positioned(
+                right: 16,
+                bottom: VvNavBar.height(context) + 16,
+                child: BuddyFab(onTap: () => go(Tabs.buddy)),
+              ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The floating Ayu Buddy button shown above the nav bar.
+class BuddyFab extends StatelessWidget {
+  final VoidCallback onTap;
+  const BuddyFab({super.key, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Open Ayu Buddy',
+      child: VvTap(
+        onTap: onTap,
+        child: Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            color: Vv.blue,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Vv.bg, width: 3),
+            boxShadow: const [BoxShadow(color: Color(0x593A4F8C), blurRadius: 20, offset: Offset(0, 8))],
+          ),
+          child: const Icon(Icons.auto_awesome_rounded, color: Vv.surface, size: 26),
         ),
       ),
     );
@@ -65,65 +105,43 @@ class VvNavBar extends StatelessWidget {
     (Icons.medical_services_outlined, 'Vaidya', Vv.green),
   ];
 
+  static double height(BuildContext context) => 84 + MediaQuery.of(context).padding.bottom;
+
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).padding.bottom;
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          height: 84 + bottomInset,
-          padding: EdgeInsets.fromLTRB(6, 0, 6, 12 + bottomInset),
-          decoration: const BoxDecoration(
-            color: Vv.surface,
-            border: Border(top: BorderSide(color: Vv.border)),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              for (var i = 0; i < _items.length; i++)
-                Expanded(
-                  child: VvTap(
-                    onTap: () => onTap(i),
-                    child: SizedBox(
-                      height: 52,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Icon(_items[i].$1, size: 22, color: active == i ? _items[i].$3 : Vv.muted),
-                          const SizedBox(height: 4),
-                          Text(
-                            _items[i].$2,
-                            style: Vv.sans(12, weight: FontWeight.w700, color: active == i ? _items[i].$3 : Vv.muted),
-                          ),
-                        ],
+    return Container(
+      height: height(context),
+      padding: EdgeInsets.fromLTRB(6, 0, 6, 12 + bottomInset),
+      decoration: const BoxDecoration(
+        color: Vv.surface,
+        border: Border(top: BorderSide(color: Vv.border)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          for (var i = 0; i < _items.length; i++)
+            Expanded(
+              child: VvTap(
+                onTap: () => onTap(i),
+                child: SizedBox(
+                  height: 52,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Icon(_items[i].$1, size: 22, color: active == i ? _items[i].$3 : Vv.muted),
+                      const SizedBox(height: 4),
+                      Text(
+                        _items[i].$2,
+                        style: Vv.sans(12, weight: FontWeight.w700, color: active == i ? _items[i].$3 : Vv.muted),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-            ],
-          ),
-        ),
-        if (active != Tabs.buddy)
-          Positioned(
-            right: 16,
-            top: -76,
-            child: VvTap(
-              onTap: () => onTap(Tabs.buddy),
-              child: Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Vv.blue,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Vv.bg, width: 3),
-                  boxShadow: const [BoxShadow(color: Color(0x593A4F8C), blurRadius: 20, offset: Offset(0, 8))],
-                ),
-                child: const Icon(Icons.auto_awesome_rounded, color: Vv.surface, size: 26),
               ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
