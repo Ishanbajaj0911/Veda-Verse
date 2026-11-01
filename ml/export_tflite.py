@@ -2,7 +2,7 @@
 Export the trained Dosha classifier to TensorFlow Lite.
 
 The model in assets/ml/dosha_model.json is a multinomial logistic regression:
-    probs = softmax(W @ x + b),   x = 126 one-hot features
+    probs = softmax(W @ x + b),   x = N_FEATURES one-hot features (90 in v3)
 That is exactly a single Dense(3, softmax) layer, so we rebuild it in Keras
 with the learned weights, convert to .tflite and verify the outputs match.
 
@@ -10,7 +10,7 @@ Run (after train_dosha_model.py):
     uv run --python 3.12 --with numpy --with tensorflow python export_tflite.py
 
 Outputs (ml/dist/):
-    dosha_model.tflite        float32 model, input [1,126] -> output [1,3]
+    dosha_model.tflite        float32 model, input [1,N_FEATURES] -> output [1,3]
     dosha_model_meta.json     input/output spec, option encoding, questions
     DEVELOPER_GUIDE.md        integration notes (maintained by hand)
 """
@@ -20,7 +20,7 @@ import shutil
 
 import numpy as np
 
-from questions import N_BASE_FEATURES, N_FEATURES, N_TB_QUESTIONS, one_hot
+from questions import N_BASE_FEATURES, N_FEATURES, N_QUESTIONS, N_TB_QUESTIONS, one_hot
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -38,7 +38,7 @@ def main():
 
     with open(MODEL_JSON, encoding="utf-8") as f:
         m = json.load(f)
-    W = np.array(m["coef"], dtype=np.float32)        # (3, 126)
+    W = np.array(m["coef"], dtype=np.float32)        # (3, N_FEATURES)
     b = np.array(m["intercept"], dtype=np.float32)   # (3,)
     n_features = m["n_features"]
     assert n_features == N_FEATURES == W.shape[1]
@@ -67,15 +67,15 @@ def main():
 
     rng = np.random.default_rng(0)
     cases = [
-        ([0] * 30, None, None), ([1] * 30, None, None), ([2] * 30, None, None),
-        ([i % 3 for i in range(30)], None, None),
-        ([0] * 20 + [1] * 10, None, None),
-        ([0] * 15 + [1] * 15, 0, [0, 0, 0, 0, 1, 0]),
-        ([1] * 15 + [2] * 15, 1, [1, 1, 1, 0, 1, 1]),
+        ([0] * N_QUESTIONS, None, None), ([1] * N_QUESTIONS, None, None), ([2] * N_QUESTIONS, None, None),
+        ([i % 3 for i in range(N_QUESTIONS)], None, None),
+        ([0] * 12 + [1] * 6, None, None),
+        ([0] * 9 + [1] * 9, 0, [0, 0, 0, 0, 1, 0]),
+        ([1] * 9 + [2] * 9, 1, [1, 1, 1, 0, 1, 1]),
     ]
     for _ in range(200):
         bank = int(rng.integers(-1, 3))
-        cases.append((list(rng.integers(0, 3, 30)),
+        cases.append((list(rng.integers(0, 3, N_QUESTIONS)),
                       None if bank < 0 else bank,
                       None if bank < 0 else list(rng.integers(0, 2, N_TB_QUESTIONS))))
     max_diff = 0.0
@@ -105,6 +105,7 @@ def main():
         "algorithm": m["algorithm"],
         "test_accuracy_stage1": m["test_accuracy_stage1"],
         "test_accuracy_adaptive": m["test_accuracy_adaptive"],
+        "vikriti_questions": m.get("vikriti_questions", []),
         "input": {
             "name": in_d["name"],
             "shape": [1, n_features],
@@ -112,7 +113,7 @@ def main():
             "base_block": f"indices 0..{N_BASE_FEATURES - 1}: one_hot[question_index * 3 + option_index] = 1.0; "
                           "option_index 0 = option A (Vata), 1 = option B (Pitta), 2 = option C (Kapha)",
             "tiebreaker_block": f"indices {N_BASE_FEATURES}..{n_features - 1}: "
-                                "one_hot[90 + bank_index * 12 + question_index * 2 + option_index] = 1.0; "
+                                f"one_hot[{N_BASE_FEATURES} + bank_index * 12 + question_index * 2 + option_index] = 1.0; "
                                 "leave the whole block 0 when no tie-breaker round was asked",
         },
         "output": {
@@ -136,10 +137,10 @@ def main():
         "questions": m["questions"],
         "tiebreaker_banks": m["tiebreaker_banks"],
         "sample_io": [
-            io([0] * 30), io([1] * 30), io([2] * 30), io([0] * 20 + [1] * 10),
-            io([0] * 15 + [1] * 15),
-            io([0] * 15 + [1] * 15, 0, [0, 0, 0, 0, 1, 0]),
-            io([1] * 15 + [2] * 15, 1, [1, 1, 1, 0, 1, 1]),
+            io([0] * N_QUESTIONS), io([1] * N_QUESTIONS), io([2] * N_QUESTIONS), io([0] * 12 + [1] * 6),
+            io([0] * 9 + [1] * 9),
+            io([0] * 9 + [1] * 9, 0, [0, 0, 0, 0, 1, 0]),
+            io([1] * 9 + [2] * 9, 1, [1, 1, 1, 0, 1, 1]),
         ],
     }
     with open(os.path.join(DIST, "dosha_model_meta.json"), "w", encoding="utf-8") as f:

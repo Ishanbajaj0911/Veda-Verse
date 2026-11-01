@@ -58,7 +58,7 @@ def main():
 
     print(f"Overall accuracy on {n_test} fresh samples")
     print(f"  exported model : {(model_pred == y_te).mean():.4f}")
-    print(f"  Bayes optimal  : {(bayes_pred == y_te).mean():.4f}   <- ceiling for these 30 questions\n")
+    print(f"  Bayes optimal  : {(bayes_pred == y_te).mean():.4f}   <- ceiling for these {N_QUESTIONS} questions\n")
 
     # by clarity of constitution: margin between top-2 true shares
     srt = np.sort(p_te, axis=1)

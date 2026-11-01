@@ -63,7 +63,8 @@ class ProfileMenuScreen extends StatelessWidget {
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                         decoration: BoxDecoration(color: Vv.bluePale2, borderRadius: BorderRadius.circular(999)),
-                                        child: Text(s.prakritiLabel, style: Vv.sans(12, weight: FontWeight.w800, color: Vv.blueDark)),
+                                        child: Text(s.hasPrakriti ? s.prakritiLabel : 'Prakriti not checked yet',
+                                            style: Vv.sans(12, weight: FontWeight.w800, color: Vv.blueDark)),
                                       ),
                                     ],
                                   ),

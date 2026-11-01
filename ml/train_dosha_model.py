@@ -2,17 +2,17 @@
 Train the Dosha classifier and export it for the Flutter app.
 
 Pipeline
-  * Features : 30 base questions one-hot (90) + 3 tie-breaker banks x 6
-               two-way questions one-hot (36) = 126 binary inputs.
-               A bank that was not asked is all zeros.
+  * Features : 18 base questions one-hot (54) + 3 tie-breaker banks x 6
+               two-way questions one-hot (36) = 90 binary inputs.
+               A bank that was not asked is all zeros. The app currently
+               never asks a bank, so it uses the base block only.
   * Target   : soft constitution vector (Vata, Pitta, Kapha shares)
   * Model    : multinomial logistic regression (softmax).  Soft targets are
                fitted with scikit-learn by replicating each row per class and
                weighting by that class's share.
-  * Adaptive : at inference the app first predicts from the 30 base answers.
-               If the top probability is below CONFIDENCE_THRESHOLD it asks
-               the tie-breaker bank for the two leading doshas and predicts
-               again with those 6 answers filled in.
+  * Adaptive : (optional) if the top probability is below
+               CONFIDENCE_THRESHOLD, a client may ask the tie-breaker bank for
+               the two leading doshas and predict again with those 6 answers.
 
 Output : assets/ml/dosha_model.json  (read by lib/ml/dosha_predictor.dart)
 """
@@ -29,14 +29,14 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
 
 from questions import (DOSHAS, N_BASE_FEATURES, N_FEATURES, N_QUESTIONS,
-                       N_TB_QUESTIONS, QUESTIONS, TIEBREAKER_BANKS, bank_for_pair,
-                       one_hot)
+                       N_TB_QUESTIONS, QUESTIONS, QUESTIONS_HI, TIEBREAKER_BANKS, TRAITS,
+                       VIKRITI_QUESTIONS, bank_for_pair, one_hot)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
 CONFIDENCE_THRESHOLD = 0.70   # ask tie-breakers below this top probability
-MODEL_VERSION = 2
+MODEL_VERSION = 3
 
 
 def load(path):
@@ -109,7 +109,7 @@ def main():
         "GradientBoosting": GradientBoostingClassifier(random_state=args.seed),
     }
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=args.seed)
-    print("5-fold CV accuracy, base 30 questions only (hard labels):")
+    print(f"5-fold CV accuracy, base {N_QUESTIONS} questions only (hard labels):")
     for name, model in candidates.items():
         s = cross_val_score(model, X_tr0, y[idx_tr], cv=cv, scoring="accuracy")
         print(f"  {name:<20} {s.mean():.4f} +/- {s.std():.4f}")
@@ -143,7 +143,7 @@ def main():
     acc0 = accuracy_score(y_te, p0.argmax(1))
     acc1 = accuracy_score(y_te, p1.argmax(1))
     print("Held-out test set:")
-    print(f"  stage 1 (30 questions only)        accuracy : {acc0:.4f}   mix MAE : {np.abs(p0 - soft_te).mean():.3f}")
+    print(f"  stage 1 ({N_QUESTIONS} questions only)        accuracy : {acc0:.4f}   mix MAE : {np.abs(p0 - soft_te).mean():.3f}")
     print(f"  stage 2 (adaptive tie-breakers)    accuracy : {acc1:.4f}   mix MAE : {np.abs(p1 - soft_te).mean():.3f}")
     print(f"  users asked tie-breakers           : {asked.mean():.1%}")
     print(f"  accuracy among those users  before : {accuracy_score(y_te[asked], p0[asked].argmax(1)):.3f}"
@@ -161,17 +161,33 @@ def main():
         print(f"  {QUESTIONS[i][0]:<24} {imp[i]:.3f}")
     print()
 
-    # ---- 5. export -----------------------------------------------------------
+    # ---- 5. reference predictions for cross-language tests --------------------
+    def ref(ans, bank=None, tba=None):
+        x = np.array(one_hot(ans, bank, tba), dtype=np.float64)
+        return {"answers": [int(a) for a in ans], "tiebreaker_bank": bank,
+                "tiebreaker_answers": tba,
+                "probs": [round(float(v), 6) for v in softmax((W @ x + b)[None, :])[0]]}
+
+    half = N_QUESTIONS // 2
+    sample_io = [
+        ref([0] * N_QUESTIONS), ref([1] * N_QUESTIONS), ref([2] * N_QUESTIONS),
+        ref([i % 3 for i in range(N_QUESTIONS)]),
+        ref([0] * half + [1] * (N_QUESTIONS - half)),
+        ref([1] * half + [2] * (N_QUESTIONS - half)),
+        ref([0] * half + [1] * (N_QUESTIONS - half), 0, [0, 0, 0, 0, 1, 0]),
+    ]
+
+    # ---- 6. export -----------------------------------------------------------
     model = {
         "name": "veda_verse_dosha_classifier",
         "version": MODEL_VERSION,
         "trained_on": str(date.today()),
-        "algorithm": "multinomial logistic regression (softmax), soft constitution targets, adaptive tie-breakers",
+        "algorithm": "multinomial logistic regression (softmax), soft constitution targets, optional tie-breakers",
         "classes": DOSHAS,
         "n_questions": N_QUESTIONS,
         "options_per_question": 3,
         "n_features": N_FEATURES,
-        "feature_layout": "base: one_hot[q*3 + option]; tie-breaker: one_hot[90 + bank*12 + j*2 + option]",
+        "feature_layout": f"base: one_hot[q*3 + option]; tie-breaker: one_hot[{N_BASE_FEATURES} + bank*12 + j*2 + option]",
         "confidence_threshold": CONFIDENCE_THRESHOLD,
         "test_accuracy_stage1": round(float(acc0), 4),
         "test_accuracy_adaptive": round(float(acc1), 4),
@@ -180,12 +196,23 @@ def main():
         "intercept": [round(float(v), 6) for v in b],
         "coef": [[round(float(w), 6) for w in row] for row in W],
         "question_importance": [round(float(v), 4) for v in imp],
-        "questions": [{"title": t, "options": o} for t, o, _ in QUESTIONS],
+        "questions": [
+            {"title": t, "options": o, "title_hi": th, "options_hi": oh, "traits": tr}
+            for (t, o, _), (th, oh), tr in zip(QUESTIONS, QUESTIONS_HI, TRAITS)
+        ],
+        "vikriti_questions": [
+            {"title": t, "options": o, "title_hi": th, "options_hi": oh}
+            for t, o, th, oh in VIKRITI_QUESTIONS
+        ],
         "tiebreaker_banks": [
             {"pair": bk["pair"],
-             "questions": [{"title": t, "options": o} for t, o in bk["questions"]]}
+             "questions": [
+                 {"title": t, "options": o, "title_hi": th, "options_hi": oh}
+                 for (t, o), (th, oh) in zip(bk["questions"], bk["questions_hi"])
+             ]}
             for bk in TIEBREAKER_BANKS
         ],
+        "sample_io": sample_io,
     }
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
     with open(args.out, "w", encoding="utf-8") as f:

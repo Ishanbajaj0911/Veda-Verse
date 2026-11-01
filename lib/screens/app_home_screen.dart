@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:veda_verse/app_shell.dart';
+import 'package:veda_verse/engine/plan_engine.dart';
 import 'package:veda_verse/screens/profile_menu_screen.dart';
 import 'package:veda_verse/state/app_state.dart';
 import 'package:veda_verse/theme/vv.dart';
@@ -31,7 +32,9 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
     return ListenableBuilder(
       listenable: s,
       builder: (context, _) {
-        final done = s.dinacharyaDone.length;
+        final plan = dailyPlan(s.engineInput);
+        final done = plan.where((p) => s.doneToday.contains(p.item.id)).length;
+        final next = plan.where((p) => !s.doneToday.contains(p.item.id)).firstOrNull;
         return Column(
           children: [
             Padding(
@@ -79,7 +82,7 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
                             const VvRings(),
                             Row(
                               children: [
-                                _Ring(fraction: done / 4, label: '$done/4'),
+                                _Ring(fraction: plan.isEmpty ? 0 : done / plan.length, label: '$done/${plan.length}'),
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: Column(
@@ -87,9 +90,12 @@ class _AppHomeScreenState extends State<AppHomeScreen> {
                                     children: [
                                       Text('${s.streak}-DAY STREAK', style: Vv.kicker(Vv.goldLight)),
                                       const SizedBox(height: 4),
-                                      SerifTitle('Next: ', 'Anulom Vilom', size: 21, color: Vv.bg, height: 1.15),
+                                      next == null
+                                          ? SerifTitle('All done ', 'for today', size: 21, color: Vv.bg, height: 1.15)
+                                          : SerifTitle('Next: ', next.item.title, size: 21, color: Vv.bg, height: 1.15),
                                       const SizedBox(height: 4),
-                                      Text('10 min · steadies Vata', style: Vv.sans(12, color: Vv.onDeepMuted2)),
+                                      Text(next == null ? 'Come back tomorrow for a fresh plan' : '${next.item.time} · ${next.reason}',
+                                          style: Vv.sans(12, color: Vv.onDeepMuted2)),
                                     ],
                                   ),
                                 ),

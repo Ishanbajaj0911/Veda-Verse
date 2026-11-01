@@ -1,684 +1,752 @@
 {
  "name": "veda_verse_dosha_classifier",
- "version": 2,
- "trained_on": "2026-10-31",
- "algorithm": "multinomial logistic regression (softmax), soft constitution targets, adaptive tie-breakers",
+ "version": 3,
+ "trained_on": "2026-11-01",
+ "algorithm": "multinomial logistic regression (softmax), soft constitution targets, optional tie-breakers",
  "classes": [
   "Vata",
   "Pitta",
   "Kapha"
  ],
- "n_questions": 30,
+ "n_questions": 18,
  "options_per_question": 3,
- "n_features": 126,
- "feature_layout": "base: one_hot[q*3 + option]; tie-breaker: one_hot[90 + bank*12 + j*2 + option]",
+ "n_features": 90,
+ "feature_layout": "base: one_hot[q*3 + option]; tie-breaker: one_hot[54 + bank*12 + j*2 + option]",
  "confidence_threshold": 0.7,
- "test_accuracy_stage1": 0.8878,
- "test_accuracy_adaptive": 0.8975,
- "test_mix_mae": 0.0827,
- "tiebreaker_rate": 0.4565,
+ "test_accuracy_stage1": 0.877,
+ "test_accuracy_adaptive": 0.888,
+ "test_mix_mae": 0.09,
+ "tiebreaker_rate": 0.48,
  "intercept": [
-  -1.2e-05,
-  0.00013,
-  9.9e-05
+  -0.000376,
+  -0.00034,
+  0.000844
  ],
  "coef": [
   [
-   0.149563,
-   -0.076497,
-   -0.073211,
-   0.116311,
-   -0.063656,
-   -0.052802,
-   0.063454,
-   -0.02227,
-   -0.04133,
-   0.137014,
-   -0.074703,
-   -0.062456,
-   0.077861,
-   -0.037139,
-   -0.040869,
-   0.148507,
-   -0.064117,
-   -0.084536,
-   0.090942,
-   -0.053083,
-   -0.038004,
-   0.087924,
-   -0.045727,
-   -0.042343,
-   0.11507,
-   -0.064872,
-   -0.050341,
-   0.104914,
-   -0.05052,
-   -0.054542,
-   0.089666,
-   -0.047621,
-   -0.042192,
-   0.110225,
-   -0.055791,
-   -0.054579,
-   0.120202,
-   -0.065111,
-   -0.055238,
-   0.131409,
-   -0.069269,
-   -0.062287,
-   0.111245,
-   -0.059018,
-   -0.052375,
-   0.093513,
-   -0.049246,
-   -0.044415,
-   0.104108,
-   -0.050441,
-   -0.053814,
-   0.117871,
-   -0.059767,
-   -0.058251,
-   0.102328,
-   -0.052737,
-   -0.049738,
-   0.110609,
-   -0.056572,
-   -0.054184,
-   0.104079,
-   -0.045623,
-   -0.058603,
-   0.111903,
-   -0.053795,
-   -0.058254,
-   0.085443,
-   -0.031187,
-   -0.054404,
-   0.101628,
-   -0.053837,
-   -0.047936,
-   0.061104,
-   -0.031129,
-   -0.030121,
-   0.066953,
-   -0.020676,
-   -0.046422,
-   0.049558,
-   -0.015786,
-   -0.033918,
-   0.134595,
-   -0.064932,
-   -0.069809,
-   0.093841,
-   -0.044119,
-   -0.049868,
-   0.073148,
-   -0.036309,
-   -0.036988,
-   0.041118,
-   -0.032371,
-   0.04222,
-   -0.033473,
-   0.038795,
-   -0.030048,
-   0.037036,
-   -0.028289,
-   0.056503,
-   -0.047756,
-   0.052162,
-   -0.043415,
-   -0.00191,
-   -0.015833,
-   -0.012887,
-   -0.004856,
-   -0.007166,
-   -0.010577,
-   -0.004458,
-   -0.013285,
-   -0.002964,
-   -0.014779,
-   -0.004802,
-   -0.012941,
-   0.042992,
-   -0.034218,
-   0.056398,
-   -0.047624,
-   0.050331,
-   -0.041556,
-   0.043111,
-   -0.034337,
-   0.048214,
-   -0.039439,
-   0.054539,
-   -0.045765
+   0.190436,
+   -0.095307,
+   -0.095551,
+   0.178468,
+   -0.08243,
+   -0.096461,
+   0.166953,
+   -0.090751,
+   -0.076625,
+   0.139558,
+   -0.081623,
+   -0.058356,
+   0.128756,
+   -0.070759,
+   -0.058419,
+   0.143488,
+   -0.06911,
+   -0.074802,
+   0.142332,
+   -0.068472,
+   -0.074282,
+   0.161871,
+   -0.081838,
+   -0.080455,
+   0.151625,
+   -0.082092,
+   -0.069956,
+   0.108682,
+   -0.051862,
+   -0.057242,
+   0.104412,
+   -0.05431,
+   -0.050525,
+   0.186967,
+   -0.09117,
+   -0.09622,
+   0.160509,
+   -0.087573,
+   -0.073357,
+   0.137956,
+   -0.062711,
+   -0.075669,
+   0.114183,
+   -0.054527,
+   -0.060078,
+   0.133484,
+   -0.06715,
+   -0.066757,
+   0.122215,
+   -0.06528,
+   -0.057358,
+   0.145148,
+   -0.071801,
+   -0.073771,
+   0.052419,
+   -0.046544,
+   0.055109,
+   -0.049234,
+   0.063116,
+   -0.057241,
+   0.058326,
+   -0.052451,
+   0.061526,
+   -0.055651,
+   0.059521,
+   -0.053646,
+   0.010925,
+   -0.02573,
+   0.002492,
+   -0.017297,
+   0.004954,
+   -0.019759,
+   0.000957,
+   -0.015762,
+   -0.013248,
+   -0.001557,
+   0.002247,
+   -0.017052,
+   0.058303,
+   -0.051072,
+   0.064397,
+   -0.057166,
+   0.046308,
+   -0.039078,
+   0.06693,
+   -0.0597,
+   0.054964,
+   -0.047733,
+   0.058684,
+   -0.051453
   ],
   [
-   -0.075424,
-   0.141735,
-   -0.066212,
-   -0.052766,
-   0.117406,
-   -0.064539,
-   -0.027993,
-   0.074744,
-   -0.046651,
-   -0.065947,
-   0.137617,
-   -0.07157,
-   -0.032389,
-   0.072078,
-   -0.039587,
-   -0.077515,
-   0.140957,
-   -0.063342,
-   -0.051023,
-   0.098174,
-   -0.047051,
-   -0.036109,
-   0.08148,
-   -0.04527,
-   -0.056753,
-   0.112311,
-   -0.055459,
-   -0.054467,
-   0.106345,
-   -0.051777,
-   -0.044772,
-   0.094634,
-   -0.049761,
-   -0.056885,
-   0.104632,
-   -0.047648,
-   -0.063309,
-   0.127943,
-   -0.064533,
-   -0.072398,
-   0.141647,
-   -0.069149,
-   -0.058515,
-   0.117303,
-   -0.058686,
-   -0.04864,
-   0.088772,
-   -0.040031,
-   -0.053995,
-   0.104645,
-   -0.05055,
-   -0.060752,
-   0.126225,
-   -0.065372,
-   -0.053859,
-   0.114897,
-   -0.060937,
-   -0.051885,
-   0.107053,
-   -0.055067,
-   -0.055016,
-   0.096483,
-   -0.041367,
-   -0.050953,
-   0.104276,
-   -0.053224,
-   -0.047736,
-   0.077063,
-   -0.029226,
-   -0.044842,
-   0.09896,
-   -0.054017,
-   -0.024537,
-   0.057091,
-   -0.032453,
-   -0.028674,
-   0.055617,
-   -0.026845,
-   -0.027311,
-   0.044518,
-   -0.017107,
-   -0.063612,
-   0.13304,
-   -0.069328,
-   -0.05099,
-   0.097728,
-   -0.046637,
-   -0.0439,
-   0.086132,
-   -0.042132,
-   -0.03968,
-   0.049516,
-   -0.040347,
-   0.050182,
-   -0.030667,
-   0.040503,
-   -0.032892,
-   0.042727,
-   -0.028638,
-   0.038473,
-   -0.042184,
-   0.05202,
-   0.038635,
-   -0.029073,
-   0.040226,
-   -0.030663,
-   0.053151,
-   -0.043589,
-   0.0399,
-   -0.030337,
-   0.038108,
-   -0.028546,
-   0.053912,
-   -0.044349,
-   -0.005534,
-   -0.013186,
-   -0.014236,
-   -0.004485,
-   -0.004456,
-   -0.014264,
+   -0.093044,
+   0.184509,
+   -0.091822,
+   -0.083799,
+   0.167583,
+   -0.084142,
+   -0.076434,
+   0.174052,
+   -0.097976,
+   -0.068234,
+   0.146502,
+   -0.078625,
+   -0.060528,
+   0.123299,
+   -0.063129,
+   -0.073854,
+   0.13657,
+   -0.063073,
+   -0.075739,
+   0.147428,
+   -0.072046,
+   -0.078881,
+   0.161811,
+   -0.083287,
+   -0.072274,
+   0.144499,
+   -0.072582,
+   -0.054898,
+   0.113426,
+   -0.058885,
+   -0.06443,
+   0.117956,
+   -0.053883,
+   -0.092853,
+   0.166592,
+   -0.074096,
+   -0.097817,
+   0.165884,
+   -0.068424,
+   -0.070758,
+   0.152189,
+   -0.081787,
+   -0.066056,
+   0.127511,
+   -0.061812,
+   -0.070259,
+   0.130968,
+   -0.061066,
+   -0.052684,
+   0.130994,
+   -0.078667,
+   -0.080155,
+   0.14582,
+   -0.066022,
+   -0.046306,
+   0.053659,
+   -0.051433,
+   0.058786,
+   -0.045082,
+   0.052435,
+   -0.047819,
+   0.055172,
+   -0.060913,
+   0.068267,
+   -0.053181,
+   0.060534,
+   0.06153,
+   -0.054111,
+   0.044108,
+   -0.036689,
+   0.053839,
+   -0.046419,
+   0.055184,
+   -0.047765,
+   0.068439,
+   -0.06102,
+   0.058024,
+   -0.050605,
+   0.001074,
+   -0.013026,
+   -0.007102,
+   -0.004849,
+   0.00576,
+   -0.017711,
+   0.002616,
+   -0.014567,
+   -0.018502,
+   0.006551,
+   -0.011649,
+   -0.000302
+  ],
+  [
+   -0.097392,
+   -0.089202,
+   0.187373,
+   -0.09467,
+   -0.085153,
+   0.180603,
+   -0.090521,
+   -0.083301,
+   0.174601,
+   -0.071323,
+   -0.064878,
+   0.136981,
+   -0.068229,
+   -0.052541,
+   0.121548,
+   -0.069635,
+   -0.06746,
+   0.137875,
+   -0.066593,
+   -0.078956,
+   0.146329,
+   -0.082989,
+   -0.079973,
+   0.163742,
+   -0.079352,
+   -0.062405,
+   0.142538,
+   -0.053784,
+   -0.061564,
+   0.116127,
+   -0.039983,
+   -0.063647,
+   0.104409,
+   -0.094114,
+   -0.075422,
+   0.170315,
+   -0.062691,
+   -0.07831,
+   0.141782,
+   -0.067198,
+   -0.089479,
+   0.157457,
+   -0.048127,
+   -0.072983,
+   0.12189,
+   -0.063225,
+   -0.063817,
+   0.127822,
+   -0.069531,
+   -0.065715,
+   0.136024,
+   -0.064994,
+   -0.074019,
+   0.139793,
+   -0.006113,
+   -0.007115,
    -0.003676,
-   -0.015045,
-   -0.015328,
-   -0.003392,
-   -0.026197,
-   0.007476
-  ],
-  [
-   -0.074138,
-   -0.065239,
-   0.139423,
-   -0.063544,
-   -0.053751,
-   0.117341,
-   -0.035461,
-   -0.052474,
-   0.087979,
-   -0.071065,
-   -0.062914,
-   0.134025,
-   -0.045473,
-   -0.03494,
-   0.080457,
-   -0.070992,
-   -0.076839,
-   0.147877,
-   -0.039919,
-   -0.045091,
-   0.085057,
-   -0.051814,
-   -0.035755,
-   0.087614,
-   -0.058315,
-   -0.047439,
-   0.105798,
-   -0.050447,
-   -0.055825,
-   0.106318,
-   -0.044896,
-   -0.047014,
-   0.091954,
-   -0.053341,
-   -0.048843,
-   0.102228,
-   -0.056892,
-   -0.062833,
-   0.119771,
-   -0.059012,
-   -0.072379,
-   0.131437,
-   -0.052729,
-   -0.058285,
-   0.111059,
-   -0.044874,
-   -0.039527,
-   0.084446,
-   -0.050114,
-   -0.054204,
-   0.104364,
-   -0.057119,
-   -0.066458,
-   0.123622,
-   -0.048469,
-   -0.062161,
-   0.110676,
-   -0.058722,
-   -0.050482,
-   0.109249,
-   -0.049062,
-   -0.05086,
-   0.099967,
-   -0.06095,
-   -0.050483,
-   0.111477,
-   -0.037708,
-   -0.045877,
-   0.08363,
-   -0.056788,
-   -0.045122,
-   0.101955,
-   -0.036566,
-   -0.025962,
-   0.062572,
-   -0.03828,
-   -0.034943,
-   0.073268,
-   -0.022248,
-   -0.028731,
-   0.051024,
-   -0.070982,
-   -0.068108,
-   0.139137,
-   -0.042852,
-   -0.053606,
-   0.096505,
-   -0.029251,
-   -0.049823,
-   0.07912,
-   -0.001438,
-   -0.017144,
-   -0.001874,
-   -0.016709,
-   -0.008128,
-   -0.010455,
-   -0.004144,
-   -0.014439,
-   -0.027866,
-   0.009283,
-   -0.009977,
-   -0.008605,
-   -0.036725,
-   0.044906,
-   -0.027339,
-   0.035519,
-   -0.045986,
-   0.054166,
-   -0.035443,
-   0.043623,
-   -0.035144,
-   0.043324,
-   -0.04911,
-   0.05729,
-   -0.037458,
-   0.047404,
-   -0.042162,
-   0.052109,
-   -0.045874,
-   0.05582,
-   -0.039436,
-   0.049382,
-   -0.032885,
-   0.042832,
-   -0.028343,
-   0.03829
+   -0.009553,
+   -0.018034,
+   0.004806,
+   -0.010507,
+   -0.002722,
+   -0.000613,
+   -0.012616,
+   -0.00634,
+   -0.006889,
+   -0.072456,
+   0.079841,
+   -0.0466,
+   0.053985,
+   -0.058793,
+   0.066178,
+   -0.056141,
+   0.063527,
+   -0.055191,
+   0.062577,
+   -0.060271,
+   0.067657,
+   -0.059377,
+   0.064098,
+   -0.057295,
+   0.062015,
+   -0.052069,
+   0.056789,
+   -0.069546,
+   0.074267,
+   -0.036462,
+   0.041183,
+   -0.047034,
+   0.051755
   ]
  ],
  "question_importance": [
-  0.0468,
-  0.0381,
-  0.0246,
-  0.0444,
-  0.025,
+  0.0715,
+  0.067,
+  0.0656,
+  0.0538,
   0.0475,
-  0.0298,
-  0.0279,
-  0.0362,
-  0.0345,
-  0.03,
-  0.0344,
-  0.04,
-  0.0439,
-  0.0369,
-  0.029,
-  0.034,
-  0.0399,
-  0.0356,
-  0.0355,
-  0.0326,
-  0.0356,
-  0.0267,
-  0.0329,
-  0.0196,
-  0.0213,
-  0.0158,
-  0.0442,
-  0.0313,
-  0.0259
+  0.0532,
+  0.0555,
+  0.062,
+  0.0558,
+  0.043,
+  0.0416,
+  0.0666,
+  0.0596,
+  0.0569,
+  0.0462,
+  0.0499,
+  0.0495,
+  0.0548
  ],
  "questions": [
   {
-   "title": "Body Frame",
+   "title": "How is your body build?",
    "options": [
-    "Thin/Lanky",
-    "Medium",
-    "Well Built"
+    "Slim and light, my bones show",
+    "Medium, with good muscle",
+    "Broad, strong and solid"
+   ],
+   "title_hi": "\u0906\u092a\u0915\u0947 \u0936\u0930\u0940\u0930 \u0915\u0940 \u092c\u0928\u093e\u0935\u091f \u0915\u0948\u0938\u0940 \u0939\u0948?",
+   "options_hi": [
+    "\u092a\u0924\u0932\u093e \u0914\u0930 \u0939\u0932\u094d\u0915\u093e, \u0939\u0921\u094d\u0921\u093f\u092f\u093e\u0901 \u0926\u093f\u0916\u0924\u0940 \u0939\u0948\u0902",
+    "\u092e\u0927\u094d\u092f\u092e, \u0905\u091a\u094d\u091b\u0940 \u092e\u093e\u0902\u0938\u092a\u0947\u0936\u093f\u092f\u093e\u0901",
+    "\u091a\u094c\u0921\u093c\u093e, \u092d\u093e\u0930\u0940 \u0914\u0930 \u092e\u091c\u093c\u092c\u0942\u0924"
+   ],
+   "traits": [
+    "slim build",
+    "medium build",
+    "broad build"
    ]
   },
   {
-   "title": "Type of Hair",
+   "title": "What happens with your weight?",
    "options": [
-    "Dry/Splits",
-    "Normal/Thin",
-    "Greasy/Heavy"
+    "Hard to gain weight",
+    "Goes up and down easily",
+    "Gain fast, lose slowly"
+   ],
+   "title_hi": "\u0906\u092a\u0915\u0947 \u0935\u091c\u093c\u0928 \u0915\u093e \u0915\u094d\u092f\u093e \u0939\u093e\u0932 \u0930\u0939\u0924\u093e \u0939\u0948?",
+   "options_hi": [
+    "\u0935\u091c\u093c\u0928 \u092c\u0922\u093c\u093e\u0928\u093e \u092e\u0941\u0936\u094d\u0915\u093f\u0932",
+    "\u0935\u091c\u093c\u0928 \u0906\u0938\u093e\u0928\u0940 \u0938\u0947 \u0918\u091f\u0924\u093e-\u092c\u0922\u093c\u0924\u093e \u0939\u0948",
+    "\u091c\u0932\u094d\u0926\u0940 \u092c\u0922\u093c\u0924\u093e \u0939\u0948, \u092e\u0941\u0936\u094d\u0915\u093f\u0932 \u0938\u0947 \u0918\u091f\u0924\u093e \u0939\u0948"
+   ],
+   "traits": [
+    "hard-to-gain weight",
+    "changeable weight",
+    "easy weight gain"
    ]
   },
   {
-   "title": "Color of Hair",
+   "title": "What is your skin usually like?",
    "options": [
-    "Pale Brown",
-    "Red/Brown",
-    "Jet Black"
+    "Dry and rough, cracks easily",
+    "Warm and sensitive, gets pimples or rashes",
+    "Smooth, soft and a little oily"
+   ],
+   "title_hi": "\u0906\u092a\u0915\u0940 \u0924\u094d\u0935\u091a\u093e \u0906\u092e\u0924\u094c\u0930 \u092a\u0930 \u0915\u0948\u0938\u0940 \u0930\u0939\u0924\u0940 \u0939\u0948?",
+   "options_hi": [
+    "\u0930\u0942\u0916\u0940, \u091c\u0932\u094d\u0926\u0940 \u092b\u091f\u0924\u0940 \u0939\u0948",
+    "\u0917\u0930\u094d\u092e \u0914\u0930 \u0928\u093e\u091c\u093c\u0941\u0915, \u092e\u0941\u0939\u093e\u0901\u0938\u0947 \u092f\u093e \u0926\u093e\u0928\u0947 \u0939\u094b\u0924\u0947 \u0939\u0948\u0902",
+    "\u091a\u093f\u0915\u0928\u0940, \u092e\u0941\u0932\u093e\u092f\u092e, \u0925\u094b\u0921\u093c\u0940 \u0924\u0948\u0932\u0940\u092f"
+   ],
+   "traits": [
+    "dry skin",
+    "sensitive skin",
+    "smooth, oily skin"
    ]
   },
   {
-   "title": "Skin",
+   "title": "What is your hair like?",
    "options": [
-    "Dry/Rough",
-    "Soft/Sweating/Acne",
-    "Moist/Greasy"
+    "Dry and frizzy",
+    "Thin, turned grey or fell early",
+    "Thick, strong and a little oily"
+   ],
+   "title_hi": "\u0906\u092a\u0915\u0947 \u092c\u093e\u0932 \u0915\u0948\u0938\u0947 \u0939\u0948\u0902?",
+   "options_hi": [
+    "\u0930\u0942\u0916\u0947 \u0914\u0930 \u0909\u0932\u091d\u0947 \u0939\u0941\u090f",
+    "\u092a\u0924\u0932\u0947, \u091c\u0932\u094d\u0926\u0940 \u0938\u092b\u093c\u0947\u0926 \u0939\u0941\u090f \u092f\u093e \u091d\u0921\u093c\u0947",
+    "\u0918\u0928\u0947, \u092e\u091c\u093c\u092c\u0942\u0924, \u0925\u094b\u0921\u093c\u0947 \u0924\u0948\u0932\u0940\u092f"
+   ],
+   "traits": [
+    "dry hair",
+    "early greying",
+    "thick hair"
    ]
   },
   {
-   "title": "Complexion",
+   "title": "How are your joints?",
    "options": [
-    "Dark/Blackish",
-    "Pink/Red",
-    "Glowing/White"
+    "They crack and feel stiff",
+    "Flexible and loose",
+    "Big, firm and steady"
+   ],
+   "title_hi": "\u0906\u092a\u0915\u0947 \u091c\u094b\u0921\u093c \u0915\u0948\u0938\u0947 \u0939\u0948\u0902?",
+   "options_hi": [
+    "\u0915\u091f-\u0915\u091f \u0906\u0935\u093e\u091c\u093c \u0914\u0930 \u0905\u0915\u0921\u093c\u0928",
+    "\u0932\u091a\u0940\u0932\u0947",
+    "\u092c\u0921\u093c\u0947 \u0914\u0930 \u092e\u091c\u093c\u092c\u0942\u0924"
+   ],
+   "traits": [
+    "cracking joints",
+    "flexible joints",
+    "firm joints"
    ]
   },
   {
-   "title": "Body Weight",
+   "title": "How do your hands and feet usually feel?",
    "options": [
-    "Low/Hard to gain",
-    "Medium/Easily changes",
-    "Overweight/Hard to lose"
+    "Often cold",
+    "Warm, sometimes sweaty",
+    "Cool and comfortable"
+   ],
+   "title_hi": "\u0906\u092a\u0915\u0947 \u0939\u093e\u0925-\u092a\u0948\u0930 \u0906\u092e\u0924\u094c\u0930 \u092a\u0930 \u0915\u0948\u0938\u0947 \u0930\u0939\u0924\u0947 \u0939\u0948\u0902?",
+   "options_hi": [
+    "\u0905\u0915\u094d\u0938\u0930 \u0920\u0902\u0921\u0947",
+    "\u0917\u0930\u094d\u092e, \u0915\u092d\u0940-\u0915\u092d\u0940 \u092a\u0938\u0940\u0928\u0947 \u0935\u093e\u0932\u0947",
+    "\u0939\u0932\u094d\u0915\u0947 \u0920\u0902\u0921\u0947, \u0906\u0930\u093e\u092e\u0926\u093e\u092f\u0915"
+   ],
+   "traits": [
+    "cold hands and feet",
+    "warm hands and feet",
+    "cool hands and feet"
    ]
   },
   {
-   "title": "Nails",
+   "title": "How much do you sweat?",
    "options": [
-    "Blackish/Brittle",
-    "Reddish/Small",
-    "Bluish/Smooth"
+    "Very little",
+    "A lot, with strong body smell",
+    "Normal amount, mild smell"
+   ],
+   "title_hi": "\u0906\u092a\u0915\u094b \u0915\u093f\u0924\u0928\u093e \u092a\u0938\u0940\u0928\u093e \u0906\u0924\u093e \u0939\u0948?",
+   "options_hi": [
+    "\u092c\u0939\u0941\u0924 \u0915\u092e",
+    "\u092c\u0939\u0941\u0924, \u0914\u0930 \u0936\u0930\u0940\u0930 \u0938\u0947 \u0924\u0947\u091c\u093c \u0917\u0902\u0927",
+    "\u0938\u093e\u092e\u093e\u0928\u094d\u092f, \u0939\u0932\u094d\u0915\u0940 \u0917\u0902\u0927"
+   ],
+   "traits": [
+    "low sweating",
+    "heavy sweating",
+    "moderate sweating"
    ]
   },
   {
-   "title": "Teeth",
+   "title": "Which weather do you dislike most?",
    "options": [
-    "Irregular/Protruding",
-    "Medium/Yellowish",
-    "Strong/White"
+    "Cold, dry and windy",
+    "Hot and sunny",
+    "Cold, damp and rainy"
+   ],
+   "title_hi": "\u0906\u092a\u0915\u094b \u0915\u094c\u0928-\u0938\u093e \u092e\u094c\u0938\u092e \u0938\u092c\u0938\u0947 \u0915\u092e \u092a\u0938\u0902\u0926 \u0939\u0948?",
+   "options_hi": [
+    "\u0920\u0902\u0921\u093e, \u0938\u0942\u0916\u093e, \u0924\u0947\u091c\u093c \u0939\u0935\u093e \u0935\u093e\u0932\u093e",
+    "\u0917\u0930\u094d\u092e \u0914\u0930 \u0924\u0947\u091c\u093c \u0927\u0942\u092a \u0935\u093e\u0932\u093e",
+    "\u0920\u0902\u0921\u093e, \u0928\u092e, \u092c\u093e\u0930\u093f\u0936 \u0935\u093e\u0932\u093e"
+   ],
+   "traits": [
+    "dislike of cold wind",
+    "dislike of heat",
+    "dislike of damp cold"
    ]
   },
   {
-   "title": "Pace of Work",
+   "title": "How is your hunger?",
    "options": [
-    "Fast/Hurry",
-    "Medium/Energetic",
-    "Slow/Steady"
+    "Comes and goes, I sometimes forget to eat",
+    "Strong, I get cranky if food is late",
+    "Mild, I can easily skip a meal"
+   ],
+   "title_hi": "\u0906\u092a\u0915\u0940 \u092d\u0942\u0916 \u0915\u0948\u0938\u0940 \u0930\u0939\u0924\u0940 \u0939\u0948?",
+   "options_hi": [
+    "\u0915\u092d\u0940 \u0932\u0917\u0924\u0940 \u0939\u0948, \u0915\u092d\u0940 \u0928\u0939\u0940\u0902",
+    "\u0924\u0947\u091c\u093c, \u0916\u093e\u0928\u093e \u0926\u0947\u0930 \u0938\u0947 \u092e\u093f\u0932\u0947 \u0924\u094b \u091a\u093f\u0922\u093c \u0939\u094b\u0924\u0940 \u0939\u0948",
+    "\u0939\u0932\u094d\u0915\u0940, \u090f\u0915 \u0935\u0915\u093c\u094d\u0924 \u0915\u093e \u0916\u093e\u0928\u093e \u091b\u094b\u0921\u093c\u0928\u093e \u0906\u0938\u093e\u0928"
+   ],
+   "traits": [
+    "irregular hunger",
+    "strong hunger",
+    "mild hunger"
    ]
   },
   {
-   "title": "Mental Activity",
+   "title": "How often do you feel thirsty?",
    "options": [
-    "Quick/Restless",
-    "Smart/Aggressive",
-    "Calm/Stable"
+    "It changes every day",
+    "Often, I drink a lot of water",
+    "Rarely"
+   ],
+   "title_hi": "\u0906\u092a\u0915\u094b \u092a\u094d\u092f\u093e\u0938 \u0915\u093f\u0924\u0928\u0940 \u0932\u0917\u0924\u0940 \u0939\u0948?",
+   "options_hi": [
+    "\u0930\u094b\u091c\u093c \u0905\u0932\u0917-\u0905\u0932\u0917",
+    "\u0905\u0915\u094d\u0938\u0930, \u092c\u0939\u0941\u0924 \u092a\u093e\u0928\u0940 \u092a\u0940\u0928\u093e \u092a\u0921\u093c\u0924\u093e \u0939\u0948",
+    "\u0915\u092e \u0939\u0940"
+   ],
+   "traits": [
+    "changing thirst",
+    "frequent thirst",
+    "low thirst"
    ]
   },
   {
-   "title": "Memory",
-   "options": [
-    "Short term bad",
-    "Good",
-    "Long term is best"
-   ]
-  },
-  {
-   "title": "Grasping Power",
-   "options": [
-    "Quick but forgets",
-    "Sharp",
-    "Slow but retains"
-   ]
-  },
-  {
-   "title": "Sleep Pattern",
-   "options": [
-    "Interrupted/Less",
-    "Moderate",
-    "Sleepy/Lazy"
-   ]
-  },
-  {
-   "title": "Weather Intolerance",
-   "options": [
-    "Cold",
-    "Heat",
-    "Cold & Damp"
-   ]
-  },
-  {
-   "title": "Reactions Under Stress",
-   "options": [
-    "Anxiety/Worry",
-    "Anger/Aggression",
-    "Calm/Depressive"
-   ]
-  },
-  {
-   "title": "Mood",
-   "options": [
-    "Changes quickly",
-    "Intense",
-    "Steady"
-   ]
-  },
-  {
-   "title": "Eating Habit",
-   "options": [
-    "Irregular",
-    "Regular/Strong",
-    "Slow/Steady"
-   ]
-  },
-  {
-   "title": "Hunger",
-   "options": [
-    "Variable",
-    "Sharp/Cannot skip",
-    "Mild/Can skip"
-   ]
-  },
-  {
-   "title": "Body Temperature",
-   "options": [
-    "Cold hands/feet",
-    "Warm",
-    "Cool/Normal"
-   ]
-  },
-  {
-   "title": "Joints",
-   "options": [
-    "Cracking/Prominent",
-    "Loose/Flexible",
-    "Large/Well-knit"
-   ]
-  },
-  {
-   "title": "Nature",
-   "options": [
-    "Timid/Fearful",
-    "Egoistic/Impatient",
-    "Forgiving/Peaceful"
-   ]
-  },
-  {
-   "title": "Body Energy",
-   "options": [
-    "Comes in bursts",
-    "Moderate",
-    "Steady/High stamina"
-   ]
-  },
-  {
-   "title": "Eyeball",
-   "options": [
-    "Unsteady/Fast moving",
-    "Moving slowly",
-    "Steady"
-   ]
-  },
-  {
-   "title": "Quality of Voice",
-   "options": [
-    "Rough/Broken words",
-    "Fast/Commanding",
-    "Soft and Deep"
-   ]
-  },
-  {
-   "title": "Dreams",
-   "options": [
-    "Flying/Fearful",
-    "Fire/Violent",
-    "Water/Romantic"
-   ]
-  },
-  {
-   "title": "Social Relations",
-   "options": [
-    "Few/Changing",
-    "Selective/Leaders",
-    "Many/Loyal"
-   ]
-  },
-  {
-   "title": "Wealth",
-   "options": [
-    "Spends quickly",
-    "Spends on luxury",
-    "Saves"
-   ]
-  },
-  {
-   "title": "Bowel Movements",
-   "options": [
-    "Dry/Constipated",
-    "Loose/Frequent",
-    "Regular/Heavy"
-   ]
-  },
-  {
-   "title": "Walking Pace",
+   "title": "How fast do you eat?",
    "options": [
     "Fast",
-    "Medium/Purposeful",
-    "Slow"
+    "Medium speed",
+    "Slowly"
+   ],
+   "title_hi": "\u0906\u092a \u0915\u093f\u0924\u0928\u0940 \u091c\u0932\u094d\u0926\u0940 \u0916\u093e\u0928\u093e \u0916\u093e\u0924\u0947 \u0939\u0948\u0902?",
+   "options_hi": [
+    "\u091c\u0932\u094d\u0926\u0940-\u091c\u0932\u094d\u0926\u0940",
+    "\u0920\u0940\u0915-\u0920\u093e\u0915 \u0930\u092b\u093c\u094d\u0924\u093e\u0930 \u0938\u0947",
+    "\u0927\u0940\u0930\u0947-\u0927\u0940\u0930\u0947"
+   ],
+   "traits": [
+    "fast eating",
+    "medium-paced eating",
+    "slow eating"
    ]
   },
   {
-   "title": "Communication Skills",
+   "title": "How are your bowel movements usually?",
    "options": [
-    "Talkative/Fast",
-    "Sharp/Convincing",
-    "Slow/Measured"
+    "Dry and hard, often constipated",
+    "Soft or loose, more than once a day",
+    "Regular and well formed"
+   ],
+   "title_hi": "\u0906\u092a\u0915\u093e \u092a\u0947\u091f \u0906\u092e\u0924\u094c\u0930 \u092a\u0930 \u0915\u0948\u0938\u0947 \u0938\u093e\u092b\u093c \u0939\u094b\u0924\u093e \u0939\u0948?",
+   "options_hi": [
+    "\u0938\u0942\u0916\u093e \u0914\u0930 \u0915\u0921\u093c\u093e, \u0905\u0915\u094d\u0938\u0930 \u0915\u092c\u094d\u091c\u093c",
+    "\u0928\u0930\u092e \u092f\u093e \u092a\u0924\u0932\u093e, \u0926\u093f\u0928 \u092e\u0947\u0902 \u090f\u0915 \u0938\u0947 \u091c\u093c\u094d\u092f\u093e\u0926\u093e \u092c\u093e\u0930",
+    "\u0928\u093f\u092f\u092e\u093f\u0924 \u0914\u0930 \u0920\u0940\u0915 \u0938\u0947"
+   ],
+   "traits": [
+    "tendency to constipation",
+    "loose bowels",
+    "regular bowels"
+   ]
+  },
+  {
+   "title": "How do you usually sleep?",
+   "options": [
+    "Light, I wake up easily",
+    "Sound, 6 to 7 hours is enough",
+    "Deep and long, hard to wake up"
+   ],
+   "title_hi": "\u0906\u092a\u0915\u0940 \u0928\u0940\u0902\u0926 \u0906\u092e\u0924\u094c\u0930 \u092a\u0930 \u0915\u0948\u0938\u0940 \u0939\u094b\u0924\u0940 \u0939\u0948?",
+   "options_hi": [
+    "\u0939\u0932\u094d\u0915\u0940, \u091c\u0932\u094d\u0926\u0940 \u091f\u0942\u091f \u091c\u093e\u0924\u0940 \u0939\u0948",
+    "\u0920\u0940\u0915, 6-7 \u0918\u0902\u091f\u0947 \u0915\u093e\u092b\u093c\u0940",
+    "\u0917\u0939\u0930\u0940 \u0914\u0930 \u0932\u0902\u092c\u0940, \u0909\u0920\u0928\u093e \u092e\u0941\u0936\u094d\u0915\u093f\u0932"
+   ],
+   "traits": [
+    "light sleep",
+    "sound sleep",
+    "deep, long sleep"
+   ]
+  },
+  {
+   "title": "How do you move and work?",
+   "options": [
+    "Quick, in bursts, I tire fast",
+    "Focused and driven",
+    "Slow and steady, lots of stamina"
+   ],
+   "title_hi": "\u0906\u092a \u0915\u093e\u092e \u0914\u0930 \u091a\u0932\u0928\u093e-\u092b\u093f\u0930\u0928\u093e \u0915\u0948\u0938\u0947 \u0915\u0930\u0924\u0947 \u0939\u0948\u0902?",
+   "options_hi": [
+    "\u0924\u0947\u091c\u093c, \u091c\u094b\u0936 \u0906\u0924\u093e-\u091c\u093e\u0924\u093e \u0939\u0948, \u091c\u0932\u094d\u0926\u0940 \u0925\u0915\u093e\u0928",
+    "\u092a\u0942\u0930\u0947 \u0927\u094d\u092f\u093e\u0928 \u0914\u0930 \u091c\u094b\u0936 \u0938\u0947",
+    "\u0927\u0940\u092e\u0947 \u0914\u0930 \u0932\u0917\u093e\u0924\u093e\u0930, \u0905\u091a\u094d\u091b\u0940 \u0924\u093e\u0915\u093c\u0924"
+   ],
+   "traits": [
+    "bursts of energy",
+    "driven pace",
+    "steady stamina"
+   ]
+  },
+  {
+   "title": "How do you talk?",
+   "options": [
+    "Fast and a lot, I jump between topics",
+    "Clear and to the point",
+    "Slow, soft and calm"
+   ],
+   "title_hi": "\u0906\u092a \u092c\u093e\u0924 \u0915\u0948\u0938\u0947 \u0915\u0930\u0924\u0947 \u0939\u0948\u0902?",
+   "options_hi": [
+    "\u0924\u0947\u091c\u093c \u0914\u0930 \u091c\u093c\u094d\u092f\u093e\u0926\u093e, \u092c\u093e\u0924 \u092c\u0926\u0932\u0924\u0940 \u0930\u0939\u0924\u0940 \u0939\u0948",
+    "\u0938\u093e\u092b\u093c \u0914\u0930 \u092e\u0941\u0926\u094d\u0926\u0947 \u0915\u0940 \u092c\u093e\u0924",
+    "\u0927\u0940\u0930\u0947, \u0928\u0930\u092e \u0914\u0930 \u0936\u093e\u0902\u0924"
+   ],
+   "traits": [
+    "fast talking",
+    "sharp speech",
+    "slow, calm speech"
+   ]
+  },
+  {
+   "title": "How do you learn and remember?",
+   "options": [
+    "Learn fast, forget fast",
+    "Learn fast, remember well",
+    "Learn slowly, never forget"
+   ],
+   "title_hi": "\u0906\u092a \u0915\u0948\u0938\u0947 \u0938\u0940\u0916\u0924\u0947 \u0914\u0930 \u092f\u093e\u0926 \u0930\u0916\u0924\u0947 \u0939\u0948\u0902?",
+   "options_hi": [
+    "\u091c\u0932\u094d\u0926\u0940 \u0938\u0940\u0916\u0928\u093e, \u091c\u0932\u094d\u0926\u0940 \u092d\u0942\u0932\u0928\u093e",
+    "\u091c\u0932\u094d\u0926\u0940 \u0938\u0940\u0916\u0928\u093e, \u0905\u091a\u094d\u091b\u0947 \u0938\u0947 \u092f\u093e\u0926 \u0930\u0916\u0928\u093e",
+    "\u0927\u0940\u0930\u0947 \u0938\u0940\u0916\u0928\u093e, \u0915\u092d\u0940 \u0928 \u092d\u0942\u0932\u0928\u093e"
+   ],
+   "traits": [
+    "learn-fast, forget-fast memory",
+    "sharp memory",
+    "slow but lasting memory"
+   ]
+  },
+  {
+   "title": "How is your mind on a normal day?",
+   "options": [
+    "Busy, full of ideas, mood changes fast",
+    "Focused and intense",
+    "Calm and steady"
+   ],
+   "title_hi": "\u0906\u092e \u0926\u093f\u0928 \u092e\u0947\u0902 \u0906\u092a\u0915\u093e \u092e\u0928 \u0915\u0948\u0938\u093e \u0930\u0939\u0924\u093e \u0939\u0948?",
+   "options_hi": [
+    "\u092c\u0947\u091a\u0948\u0928, \u0922\u0947\u0930 \u0938\u093e\u0930\u0947 \u0935\u093f\u091a\u093e\u0930, \u092e\u0942\u0921 \u091c\u0932\u094d\u0926\u0940 \u092c\u0926\u0932\u0924\u093e \u0939\u0948",
+    "\u090f\u0915\u093e\u0917\u094d\u0930 \u0914\u0930 \u0924\u0947\u091c\u093c",
+    "\u0936\u093e\u0902\u0924 \u0914\u0930 \u0938\u094d\u0925\u093f\u0930"
+   ],
+   "traits": [
+    "busy mind",
+    "intense focus",
+    "calm mind"
+   ]
+  },
+  {
+   "title": "When you are stressed, what happens first?",
+   "options": [
+    "I worry and overthink",
+    "I get angry or irritated",
+    "I go quiet and pull away"
+   ],
+   "title_hi": "\u0924\u0928\u093e\u0935 \u092e\u0947\u0902 \u0938\u092c\u0938\u0947 \u092a\u0939\u0932\u0947 \u0915\u094d\u092f\u093e \u0939\u094b\u0924\u093e \u0939\u0948?",
+   "options_hi": [
+    "\u091a\u093f\u0902\u0924\u093e \u0914\u0930 \u091c\u093c\u094d\u092f\u093e\u0926\u093e \u0938\u094b\u091a\u0928\u093e",
+    "\u0917\u0941\u0938\u094d\u0938\u093e \u092f\u093e \u091a\u093f\u0921\u093c\u091a\u093f\u0921\u093c\u093e\u092a\u0928",
+    "\u091a\u0941\u092a \u0939\u094b \u091c\u093e\u0928\u093e, \u0938\u092c\u0938\u0947 \u0926\u0942\u0930 \u0930\u0939\u0928\u093e"
+   ],
+   "traits": [
+    "worry under stress",
+    "anger under stress",
+    "withdrawing under stress"
+   ]
+  }
+ ],
+ "vikriti_questions": [
+  {
+   "title": "How has your mind been lately?",
+   "options": [
+    "Anxious, racing thoughts",
+    "Irritable and impatient",
+    "Low, no motivation"
+   ],
+   "title_hi": "\u092a\u093f\u091b\u0932\u0947 \u0926\u093f\u0928\u094b\u0902 \u0906\u092a\u0915\u093e \u092e\u0928 \u0915\u0948\u0938\u093e \u0930\u0939\u093e?",
+   "options_hi": [
+    "\u0918\u092c\u0930\u093e\u0939\u091f, \u0926\u093f\u092e\u093e\u0917\u093c \u0926\u094c\u0921\u093c\u0924\u093e \u0930\u0939\u093e",
+    "\u091a\u093f\u0921\u093c\u091a\u093f\u0921\u093c\u093e \u0914\u0930 \u092c\u0947\u0938\u092c\u094d\u0930",
+    "\u0909\u0926\u093e\u0938, \u092e\u0928 \u0928\u0939\u0940\u0902 \u0932\u0917\u093e"
+   ]
+  },
+  {
+   "title": "How has your sleep been lately?",
+   "options": [
+    "Waking up at night",
+    "Hot and restless",
+    "Sleeping too much"
+   ],
+   "title_hi": "\u092a\u093f\u091b\u0932\u0947 \u0926\u093f\u0928\u094b\u0902 \u0928\u0940\u0902\u0926 \u0915\u0948\u0938\u0940 \u0930\u0939\u0940?",
+   "options_hi": [
+    "\u0930\u093e\u0924 \u092e\u0947\u0902 \u092c\u093e\u0930-\u092c\u093e\u0930 \u0928\u0940\u0902\u0926 \u091f\u0942\u091f\u0940",
+    "\u0917\u0930\u094d\u092e\u0940 \u0914\u0930 \u092c\u0947\u091a\u0948\u0928\u0940",
+    "\u091c\u093c\u0930\u0942\u0930\u0924 \u0938\u0947 \u091c\u093c\u094d\u092f\u093e\u0926\u093e \u0928\u0940\u0902\u0926"
+   ]
+  },
+  {
+   "title": "How has your stomach been lately?",
+   "options": [
+    "Gas, bloating or constipation",
+    "Acidity or burning",
+    "Heavy, no appetite"
+   ],
+   "title_hi": "\u092a\u093f\u091b\u0932\u0947 \u0926\u093f\u0928\u094b\u0902 \u092a\u0947\u091f \u0915\u0948\u0938\u093e \u0930\u0939\u093e?",
+   "options_hi": [
+    "\u0917\u0948\u0938, \u092a\u0947\u091f \u092b\u0942\u0932\u0928\u093e \u092f\u093e \u0915\u092c\u094d\u091c\u093c",
+    "\u090f\u0938\u093f\u0921\u093f\u091f\u0940 \u092f\u093e \u091c\u0932\u0928",
+    "\u092d\u093e\u0930\u0940\u092a\u0928, \u092d\u0942\u0916 \u0928\u0939\u0940\u0902 \u0932\u0917\u0940"
+   ]
+  },
+  {
+   "title": "How has your skin been lately?",
+   "options": [
+    "Dry and cracking",
+    "Rashes or pimples",
+    "Oily or puffy"
+   ],
+   "title_hi": "\u092a\u093f\u091b\u0932\u0947 \u0926\u093f\u0928\u094b\u0902 \u0924\u094d\u0935\u091a\u093e \u0915\u0948\u0938\u0940 \u0930\u0939\u0940?",
+   "options_hi": [
+    "\u0930\u0942\u0916\u0940 \u0914\u0930 \u092b\u091f\u0940",
+    "\u0926\u093e\u0928\u0947 \u092f\u093e \u092e\u0941\u0939\u093e\u0901\u0938\u0947",
+    "\u0924\u0948\u0932\u0940\u092f \u092f\u093e \u0938\u0942\u091c\u0940 \u0939\u0941\u0908"
+   ]
+  },
+  {
+   "title": "How has your body felt lately?",
+   "options": [
+    "Aches and stiffness",
+    "Too hot",
+    "Heavy and sluggish"
+   ],
+   "title_hi": "\u092a\u093f\u091b\u0932\u0947 \u0926\u093f\u0928\u094b\u0902 \u0936\u0930\u0940\u0930 \u0915\u0948\u0938\u093e \u0932\u0917\u093e?",
+   "options_hi": [
+    "\u0926\u0930\u094d\u0926 \u0914\u0930 \u0905\u0915\u0921\u093c\u0928",
+    "\u091c\u093c\u094d\u092f\u093e\u0926\u093e \u0917\u0930\u094d\u092e\u0940",
+    "\u092d\u093e\u0930\u0940 \u0914\u0930 \u0938\u0941\u0938\u094d\u0924"
+   ]
+  },
+  {
+   "title": "What have you been craving lately?",
+   "options": [
+    "Warm, salty food",
+    "Cold food and drinks",
+    "Sweet or fried food"
+   ],
+   "title_hi": "\u092a\u093f\u091b\u0932\u0947 \u0926\u093f\u0928\u094b\u0902 \u0915\u094d\u092f\u093e \u0916\u093e\u0928\u0947 \u0915\u093e \u092e\u0928 \u0915\u093f\u092f\u093e?",
+   "options_hi": [
+    "\u0917\u0930\u094d\u092e, \u0928\u092e\u0915\u0940\u0928 \u0916\u093e\u0928\u093e",
+    "\u0920\u0902\u0921\u0940 \u091a\u0940\u091c\u093c\u0947\u0902",
+    "\u092e\u0940\u0920\u093e \u092f\u093e \u0924\u0932\u093e \u0939\u0941\u0906"
    ]
   }
  ],
@@ -690,45 +758,75 @@
    ],
    "questions": [
     {
-     "title": "Temperature",
+     "title": "Do you feel cold or warm more often?",
      "options": [
-      "Often feel cold, cold hands and feet",
-      "Often feel warm, dislike heat"
+      "Cold, with cold hands and feet",
+      "Warm, I dislike heat"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u094b \u0920\u0902\u0921 \u091c\u093c\u094d\u092f\u093e\u0926\u093e \u0932\u0917\u0924\u0940 \u0939\u0948 \u092f\u093e \u0917\u0930\u094d\u092e\u0940?",
+     "options_hi": [
+      "\u0920\u0902\u0921 \u091c\u093c\u094d\u092f\u093e\u0926\u093e \u0932\u0917\u0924\u0940 \u0939\u0948",
+      "\u0917\u0930\u094d\u092e\u0940 \u091c\u093c\u094d\u092f\u093e\u0926\u093e \u0932\u0917\u0924\u0940 \u0939\u0948"
      ]
     },
     {
-     "title": "Appetite",
+     "title": "How is your hunger?",
      "options": [
-      "Irregular, can forget to eat",
-      "Strong, irritable if a meal is missed"
+      "Irregular, I forget to eat",
+      "Strong, I get cranky if I miss a meal"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u0940 \u092d\u0942\u0916 \u0915\u0948\u0938\u0940 \u0939\u0948?",
+     "options_hi": [
+      "\u0905\u0928\u093f\u092f\u092e\u093f\u0924, \u0916\u093e\u0928\u093e \u092d\u0942\u0932 \u091c\u093e\u0928\u093e",
+      "\u0924\u0947\u091c\u093c, \u0916\u093e\u0928\u093e \u091b\u0942\u091f\u0947 \u0924\u094b \u091a\u093f\u0922\u093c"
      ]
     },
     {
-     "title": "Skin",
+     "title": "How is your skin?",
      "options": [
-      "Dry, thin, rough",
-      "Warm, reddish, prone to rashes or acne"
+      "Dry and rough",
+      "Warm, red, gets rashes or pimples"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u0940 \u0924\u094d\u0935\u091a\u093e \u0915\u0948\u0938\u0940 \u0939\u0948?",
+     "options_hi": [
+      "\u0930\u0942\u0916\u0940",
+      "\u0917\u0930\u094d\u092e, \u0932\u093e\u0932, \u0926\u093e\u0928\u0947 \u092f\u093e \u092e\u0941\u0939\u093e\u0901\u0938\u0947"
      ]
     },
     {
-     "title": "Under Stress",
+     "title": "When stressed, you?",
      "options": [
-      "Worry, anxiety, overthinking",
-      "Irritation, anger, criticism"
+      "Worry and overthink",
+      "Get irritated or angry"
+     ],
+     "title_hi": "\u0924\u0928\u093e\u0935 \u092e\u0947\u0902 \u0906\u092a?",
+     "options_hi": [
+      "\u091a\u093f\u0902\u0924\u093e \u0915\u0930\u0924\u0947 \u0939\u0948\u0902",
+      "\u0917\u0941\u0938\u094d\u0938\u093e \u0915\u0930\u0924\u0947 \u0939\u0948\u0902"
      ]
     },
     {
-     "title": "Sleep",
+     "title": "How do you sleep?",
      "options": [
       "Light, easily disturbed",
-      "Moderate, may wake feeling hot"
+      "Fine, but heat wakes me up"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u0940 \u0928\u0940\u0902\u0926 \u0915\u0948\u0938\u0940 \u0939\u0948?",
+     "options_hi": [
+      "\u0939\u0932\u094d\u0915\u0940, \u091c\u0932\u094d\u0926\u0940 \u091f\u0942\u091f\u0924\u0940",
+      "\u0920\u0940\u0915, \u092a\u0930 \u0917\u0930\u094d\u092e\u0940 \u0938\u0947 \u0928\u0940\u0902\u0926 \u0916\u0941\u0932\u0924\u0940"
      ]
     },
     {
-     "title": "Speech",
+     "title": "How do you talk?",
      "options": [
-      "Fast, jumps between topics",
-      "Sharp, precise, persuasive"
+      "Fast, I jump between topics",
+      "Sharp and to the point"
+     ],
+     "title_hi": "\u0906\u092a \u092c\u093e\u0924 \u0915\u0948\u0938\u0947 \u0915\u0930\u0924\u0947 \u0939\u0948\u0902?",
+     "options_hi": [
+      "\u0924\u0947\u091c\u093c, \u092c\u093e\u0924 \u092c\u0926\u0932\u0924\u0947 \u0930\u0939\u0928\u093e",
+      "\u0938\u093e\u092b\u093c, \u092e\u0941\u0926\u094d\u0926\u0947 \u0915\u0940 \u092c\u093e\u0924"
      ]
     }
    ]
@@ -740,45 +838,75 @@
    ],
    "questions": [
     {
-     "title": "Appetite",
+     "title": "How is your hunger?",
      "options": [
-      "Strong, get hungry and irritable",
-      "Mild, can skip meals easily"
+      "Strong, I get cranky",
+      "Mild, I can skip meals"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u0940 \u092d\u0942\u0916 \u0915\u0948\u0938\u0940 \u0939\u0948?",
+     "options_hi": [
+      "\u0924\u0947\u091c\u093c, \u091a\u093f\u0922\u093c \u0939\u094b\u0924\u0940 \u0939\u0948",
+      "\u0939\u0932\u094d\u0915\u0940, \u0916\u093e\u0928\u093e \u091b\u094b\u0921\u093c \u0938\u0915\u0924\u0947 \u0939\u0948\u0902"
      ]
     },
     {
-     "title": "Body Build",
+     "title": "How is your body?",
      "options": [
-      "Medium, muscular",
-      "Broad, solid, gain weight easily"
+      "Medium and muscular",
+      "Broad, I gain weight easily"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u093e \u0936\u0930\u0940\u0930 \u0915\u0948\u0938\u093e \u0939\u0948?",
+     "options_hi": [
+      "\u092e\u0927\u094d\u092f\u092e \u0914\u0930 \u092e\u093e\u0902\u0938\u0932",
+      "\u091a\u094c\u0921\u093c\u093e, \u0935\u091c\u093c\u0928 \u091c\u0932\u094d\u0926\u0940 \u092c\u0922\u093c\u0924\u093e"
      ]
     },
     {
-     "title": "Sweating",
+     "title": "How much do you sweat?",
      "options": [
-      "Sweat easily, even in mild heat",
-      "Sweat little, skin stays cool"
+      "Even in mild heat",
+      "Very little"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u094b \u0915\u093f\u0924\u0928\u093e \u092a\u0938\u0940\u0928\u093e \u0906\u0924\u093e \u0939\u0948?",
+     "options_hi": [
+      "\u0939\u0932\u094d\u0915\u0940 \u0917\u0930\u094d\u092e\u0940 \u092e\u0947\u0902 \u092d\u0940",
+      "\u092c\u0939\u0941\u0924 \u0915\u092e"
      ]
     },
     {
-     "title": "Pace",
+     "title": "What is your pace?",
      "options": [
-      "Driven, competitive, impatient",
-      "Relaxed, steady, hard to hurry"
+      "Driven, I hate waiting",
+      "Relaxed, hard to rush me"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u0940 \u0930\u092b\u093c\u094d\u0924\u093e\u0930 \u0915\u0948\u0938\u0940 \u0939\u0948?",
+     "options_hi": [
+      "\u091c\u094b\u0936\u0940\u0932\u093e, \u0907\u0902\u0924\u091c\u093c\u093e\u0930 \u092a\u0938\u0902\u0926 \u0928\u0939\u0940\u0902",
+      "\u0906\u0930\u093e\u092e\u092a\u0938\u0902\u0926, \u091c\u0932\u094d\u0926\u092c\u093e\u091c\u093c\u0940 \u0928\u0939\u0940\u0902"
      ]
     },
     {
-     "title": "Sleep",
+     "title": "How much sleep do you need?",
      "options": [
-      "Moderate, 6-7 hours is enough",
-      "Deep and long, hard to wake up"
+      "6 to 7 hours is enough",
+      "Long and deep"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u094b \u0915\u093f\u0924\u0928\u0940 \u0928\u0940\u0902\u0926 \u091a\u093e\u0939\u093f\u090f?",
+     "options_hi": [
+      "6-7 \u0918\u0902\u091f\u0947 \u0915\u093e\u092b\u093c\u0940",
+      "\u0932\u0902\u092c\u0940 \u0914\u0930 \u0917\u0939\u0930\u0940"
      ]
     },
     {
-     "title": "Emotions",
+     "title": "How does your anger work?",
      "options": [
-      "Intense, quick to anger and to forgive",
-      "Calm, slow to anger, hold on to feelings"
+      "Quick to anger, quick to forgive",
+      "Slow to anger, but I hold on"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u093e \u0917\u0941\u0938\u094d\u0938\u093e \u0915\u0948\u0938\u093e \u0939\u0948?",
+     "options_hi": [
+      "\u091c\u0932\u094d\u0926\u0940 \u0917\u0941\u0938\u094d\u0938\u093e, \u091c\u0932\u094d\u0926\u0940 \u092e\u093e\u092b\u093c",
+      "\u0926\u0947\u0930 \u0938\u0947 \u0917\u0941\u0938\u094d\u0938\u093e, \u0926\u0947\u0930 \u0924\u0915 \u092f\u093e\u0926"
      ]
     }
    ]
@@ -790,47 +918,289 @@
    ],
    "questions": [
     {
-     "title": "Body Build",
+     "title": "How is your body?",
      "options": [
-      "Thin, light, hard to gain weight",
-      "Solid, heavy, hard to lose weight"
+      "Thin, hard to gain weight",
+      "Solid, hard to lose weight"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u093e \u0936\u0930\u0940\u0930 \u0915\u0948\u0938\u093e \u0939\u0948?",
+     "options_hi": [
+      "\u092a\u0924\u0932\u093e, \u0935\u091c\u093c\u0928 \u092c\u0922\u093c\u093e\u0928\u093e \u092e\u0941\u0936\u094d\u0915\u093f\u0932",
+      "\u092d\u093e\u0930\u0940, \u0935\u091c\u093c\u0928 \u0918\u091f\u093e\u0928\u093e \u092e\u0941\u0936\u094d\u0915\u093f\u0932"
      ]
     },
     {
-     "title": "Energy",
+     "title": "How is your energy?",
      "options": [
-      "Bursts of energy, tire quickly",
-      "Steady stamina, slow to get started"
+      "Comes in bursts, then I tire",
+      "Steady, but slow to start"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u0940 \u090a\u0930\u094d\u091c\u093e \u0915\u0948\u0938\u0940 \u0939\u0948?",
+     "options_hi": [
+      "\u091c\u094b\u0936 \u0906\u0924\u093e-\u091c\u093e\u0924\u093e \u0939\u0948",
+      "\u0932\u0917\u093e\u0924\u093e\u0930, \u092a\u0930 \u0936\u0941\u0930\u0941\u0906\u0924 \u0927\u0940\u092e\u0940"
      ]
     },
     {
-     "title": "Mind",
+     "title": "How is your mind?",
      "options": [
-      "Restless, many ideas, change quickly",
-      "Calm, steady, dislike change"
+      "Restless, I like change",
+      "Calm, I dislike change"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u093e \u092e\u0928 \u0915\u0948\u0938\u093e \u0939\u0948?",
+     "options_hi": [
+      "\u092c\u0947\u091a\u0948\u0928, \u092c\u0926\u0932\u093e\u0935 \u092a\u0938\u0902\u0926",
+      "\u0936\u093e\u0902\u0924, \u092c\u0926\u0932\u093e\u0935 \u0928\u093e\u092a\u0938\u0902\u0926"
      ]
     },
     {
-     "title": "Sleep",
+     "title": "How do you sleep?",
      "options": [
-      "Light, interrupted",
-      "Heavy, long, sleepy in the day"
+      "Light and broken",
+      "Heavy, sleepy in the day too"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u0940 \u0928\u0940\u0902\u0926 \u0915\u0948\u0938\u0940 \u0939\u0948?",
+     "options_hi": [
+      "\u0939\u0932\u094d\u0915\u0940 \u0914\u0930 \u091f\u0942\u091f\u0940",
+      "\u092d\u093e\u0930\u0940, \u0926\u093f\u0928 \u092e\u0947\u0902 \u092d\u0940 \u0928\u0940\u0902\u0926"
      ]
     },
     {
-     "title": "Skin",
+     "title": "How is your skin?",
      "options": [
-      "Dry, rough, cool",
-      "Smooth, oily, thick"
+      "Dry and rough",
+      "Smooth and oily"
+     ],
+     "title_hi": "\u0906\u092a\u0915\u0940 \u0924\u094d\u0935\u091a\u093e \u0915\u0948\u0938\u0940 \u0939\u0948?",
+     "options_hi": [
+      "\u0930\u0942\u0916\u0940",
+      "\u091a\u093f\u0915\u0928\u0940 \u0914\u0930 \u0924\u0948\u0932\u0940\u092f"
      ]
     },
     {
-     "title": "Weather",
+     "title": "Which weather bothers you?",
      "options": [
-      "Dislike cold and wind, love warmth",
-      "Dislike damp cold, feel sluggish in it"
+      "Cold wind",
+      "Damp cold makes me dull"
+     ],
+     "title_hi": "\u0915\u094c\u0928-\u0938\u093e \u092e\u094c\u0938\u092e \u092a\u0930\u0947\u0936\u093e\u0928 \u0915\u0930\u0924\u093e \u0939\u0948?",
+     "options_hi": [
+      "\u0920\u0902\u0921\u0940 \u0939\u0935\u093e",
+      "\u0928\u092e\u0940 \u0935\u093e\u0932\u0940 \u0920\u0902\u0921 \u092e\u0947\u0902 \u0938\u0941\u0938\u094d\u0924\u0940"
      ]
     }
+   ]
+  }
+ ],
+ "sample_io": [
+  {
+   "answers": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "tiebreaker_bank": null,
+   "tiebreaker_answers": null,
+   "probs": [
+    0.962002,
+    0.018529,
+    0.019469
+   ]
+  },
+  {
+   "answers": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "tiebreaker_bank": null,
+   "tiebreaker_answers": null,
+   "probs": [
+    0.018243,
+    0.963124,
+    0.018633
+   ]
+  },
+  {
+   "answers": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "tiebreaker_bank": null,
+   "tiebreaker_answers": null,
+   "probs": [
+    0.01938,
+    0.019083,
+    0.961537
+   ]
+  },
+  {
+   "answers": [
+    0,
+    1,
+    2,
+    0,
+    1,
+    2,
+    0,
+    1,
+    2,
+    0,
+    1,
+    2,
+    0,
+    1,
+    2,
+    0,
+    1,
+    2
+   ],
+   "tiebreaker_bank": null,
+   "tiebreaker_answers": null,
+   "probs": [
+    0.335099,
+    0.319426,
+    0.345475
+   ]
+  },
+  {
+   "answers": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "tiebreaker_bank": null,
+   "tiebreaker_answers": null,
+   "probs": [
+    0.523323,
+    0.416417,
+    0.060259
+   ]
+  },
+  {
+   "answers": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "tiebreaker_bank": null,
+   "tiebreaker_answers": null,
+   "probs": [
+    0.062954,
+    0.521861,
+    0.415185
+   ]
+  },
+  {
+   "answers": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "tiebreaker_bank": 0,
+   "tiebreaker_answers": [
+    0,
+    0,
+    0,
+    0,
+    1,
+    0
+   ],
+   "probs": [
+    0.619166,
+    0.327493,
+    0.053341
    ]
   }
  ]

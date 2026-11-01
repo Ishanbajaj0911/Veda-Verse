@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:veda_verse/engine/plan_engine.dart';
 import 'package:veda_verse/screens/profile_menu_screen.dart';
 import 'package:veda_verse/state/app_state.dart';
 import 'package:veda_verse/theme/vv.dart';
 
-class _Session {
-  final String title, where, time, price, match, cta;
-  final Color bg;
-  const _Session(this.title, this.where, this.time, this.price, this.match, this.bg, this.cta);
-  bool get free => price == 'Free';
-}
-
-/// Yoga & Therapy tab.
+/// Yoga & Therapy tab. Sessions are ordered by the rule engine from the
+/// quiz result and the intake answers (see plan_engine.dart).
 class YogaScreen extends StatefulWidget {
   const YogaScreen({super.key});
 
@@ -22,23 +17,17 @@ class _YogaScreenState extends State<YogaScreen> {
   int _mode = 0;
   String _price = 'All';
 
-  static const _near = [
-    _Session('Sunrise Hatha by the lake', 'Fateh Sagar Pal · 1.2 km', 'Sun · 6:00 am', 'Free', 'Great for Vata', Vv.mint, 'Join'),
-    _Session('Gentle spine & back therapy', 'Shanti Wellness, Hiran Magri · 3.4 km', 'Tue, Thu · 7:30 am', '₹499', 'For back pain', Vv.goldPale, 'Book'),
-    _Session('Shirodhara session', 'Ayur Kendra, Sector 4 · 4.1 km', 'By appointment', '₹1,200', 'Calms Pitta', Vv.bluePale2, 'Book'),
-  ];
-  static const _online = [
-    _Session('Yoga Nidra for deep sleep', 'Live on VedaVerse · Hindi', 'Daily · 9:30 pm', 'Free', 'For poor sleep', Vv.bluePale2, 'Join'),
-    _Session('Pranayama for acidity', 'Live on VedaVerse · English', 'Mon–Fri · 7:00 am', '₹299/mo', 'Cools Pitta', Vv.goldPale, 'Book'),
-    _Session('Desk-break stretches', 'Recorded · 12 min', 'Anytime', 'Free', 'Great for Vata', Vv.mint, 'Start'),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final s = AppState.instance;
-    var list = _mode == 0 ? _near : _online;
-    if (_price == 'Free') list = list.where((x) => x.free).toList();
-    if (_price == 'Paid') list = list.where((x) => !x.free).toList();
+    return ListenableBuilder(listenable: s, builder: (context, _) => _build(context, s));
+  }
+
+  Widget _build(BuildContext context, AppState s) {
+    final input = s.engineInput;
+    var list = rankSessions(_mode == 0 ? nearSessions : onlineSessions, input);
+    if (_price == 'Free') list = list.where((r) => r.session.free).toList();
+    if (_price == 'Paid') list = list.where((r) => !r.session.free).toList();
 
     return Column(
       children: [
@@ -78,20 +67,13 @@ class _YogaScreenState extends State<YogaScreen> {
                     const Icon(Icons.auto_awesome_outlined, size: 20, color: Vv.brownDark),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: Text.rich(TextSpan(
-                        style: Vv.sans(13, color: Vv.brownDark, height: 1.45),
-                        children: [
-                          const TextSpan(text: 'Ranked for '),
-                          TextSpan(text: s.prakritiLabel.replaceAll(' dominant', ''), style: Vv.sans(13, weight: FontWeight.w800, color: Vv.brownDark)),
-                          const TextSpan(text: ' and your back pain — grounding, cooling, gentle on the spine.'),
-                        ],
-                      )),
+                      child: Text(rankingNote(input), style: Vv.sans(13, color: Vv.brownDark, height: 1.45)),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 14),
-              for (final x in list) ...[
+              for (final r in list) ...[
                 ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
@@ -101,7 +83,7 @@ class _YogaScreenState extends State<YogaScreen> {
                       children: [
                         Container(
                           height: 112,
-                          color: x.bg,
+                          color: Color(r.session.bg),
                           child: Stack(
                             children: [
                               const Center(child: Opacity(opacity: 0.55, child: Icon(Icons.self_improvement_rounded, size: 64, color: Vv.deep))),
@@ -110,8 +92,8 @@ class _YogaScreenState extends State<YogaScreen> {
                                 top: 12,
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                  decoration: BoxDecoration(color: x.free ? Vv.green : Vv.deep, borderRadius: BorderRadius.circular(999)),
-                                  child: Text(x.price, style: Vv.sans(12, weight: FontWeight.w800, color: x.free ? Vv.surface : Vv.goldSoft)),
+                                  decoration: BoxDecoration(color: r.session.free ? Vv.green : Vv.deep, borderRadius: BorderRadius.circular(999)),
+                                  child: Text(r.session.price, style: Vv.sans(12, weight: FontWeight.w800, color: r.session.free ? Vv.surface : Vv.goldSoft)),
                                 ),
                               ),
                               Positioned(
@@ -119,8 +101,10 @@ class _YogaScreenState extends State<YogaScreen> {
                                 bottom: 12,
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                  decoration: BoxDecoration(color: const Color(0xEBFFFFFF), borderRadius: BorderRadius.circular(999)),
-                                  child: Text(x.match, style: Vv.sans(12, weight: FontWeight.w700)),
+                                  decoration: BoxDecoration(
+                                      color: r.caution ? Vv.redPale : const Color(0xEBFFFFFF), borderRadius: BorderRadius.circular(999)),
+                                  child: Text(r.reason,
+                                      style: Vv.sans(12, weight: FontWeight.w700, color: r.caution ? Vv.redInk : Vv.ink)),
                                 ),
                               ),
                             ],
@@ -131,9 +115,9 @@ class _YogaScreenState extends State<YogaScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(x.title, style: Vv.sans(16, weight: FontWeight.w700)),
+                              Text(r.session.title, style: Vv.sans(16, weight: FontWeight.w700)),
                               const SizedBox(height: 4),
-                              Text(x.where, style: Vv.sans(13, color: Vv.muted)),
+                              Text(r.session.where, style: Vv.sans(13, color: Vv.muted)),
                               const SizedBox(height: 10),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -142,17 +126,23 @@ class _YogaScreenState extends State<YogaScreen> {
                                     children: [
                                       const Icon(Icons.schedule_rounded, size: 16, color: Vv.ink2),
                                       const SizedBox(width: 6),
-                                      Text(x.time, style: Vv.sans(13, weight: FontWeight.w700, color: Vv.ink2)),
+                                      Text(r.session.time, style: Vv.sans(13, weight: FontWeight.w700, color: Vv.ink2)),
                                     ],
                                   ),
                                   VvTap(
-                                    onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${x.cta}: ${x.title}'))),
+                                    onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                        content: Text(r.caution
+                                            ? 'Please check with your Vaidya before joining ${r.session.title}.'
+                                            : '${r.session.cta}: ${r.session.title}'))),
                                     child: Container(
                                       height: 44,
                                       padding: const EdgeInsets.symmetric(horizontal: 20),
                                       alignment: Alignment.center,
-                                      decoration: BoxDecoration(color: Vv.green, borderRadius: BorderRadius.circular(12)),
-                                      child: Text(x.cta, style: Vv.sans(14, weight: FontWeight.w700, color: Vv.surface)),
+                                      decoration: BoxDecoration(
+                                          color: r.caution ? Vv.surface : Vv.green,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: r.caution ? Border.all(color: Vv.border3, width: 1.5) : null),
+                                      child: Text(r.session.cta, style: Vv.sans(14, weight: FontWeight.w700, color: r.caution ? Vv.ink : Vv.surface)),
                                     ),
                                   ),
                                 ],

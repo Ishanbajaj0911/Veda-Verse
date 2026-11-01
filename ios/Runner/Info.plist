@@ -45,5 +45,17 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>VedaVerse uses the camera to photograph a lab report or prescription so Ayu Buddy can explain it.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>VedaVerse lets you choose a photo of a lab report or prescription so Ayu Buddy can explain it.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>VedaVerse uses the microphone so you can ask Ayu Buddy questions by voice.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>VedaVerse turns your spoken question into text for Ayu Buddy.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>tel</string>
+	</array>
 </dict>
 </plist>

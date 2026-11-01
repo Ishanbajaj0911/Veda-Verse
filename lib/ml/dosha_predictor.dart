@@ -58,23 +58,42 @@ class TieBreakerBank {
 class TieBreakerQuestion {
   final String title;
   final List<String> options; // option 0 = pair[0] trait, option 1 = pair[1] trait
-  const TieBreakerQuestion({required this.title, required this.options});
+  final String? titleHi;
+  final List<String>? optionsHi;
+  const TieBreakerQuestion({required this.title, required this.options, this.titleHi, this.optionsHi});
 }
 
-/// One of the 30 base quiz questions, options in [Vata, Pitta, Kapha] order.
+/// A quiz question with options in [Vata, Pitta, Kapha] order, plus optional
+/// Hindi text. Used for the base Prakriti questions and the Vikriti ones.
 class QuizQuestion {
   final String title;
   final List<String> options;
-  const QuizQuestion({required this.title, required this.options});
+  final String? titleHi;
+  final List<String>? optionsHi;
+
+  /// Short phrase per option for explanations, e.g. "slim build".
+  final List<String>? traits;
+  const QuizQuestion({required this.title, required this.options, this.titleHi, this.optionsHi, this.traits});
+
+  factory QuizQuestion.fromJson(Map<String, dynamic> q) => QuizQuestion(
+        title: q['title'] as String,
+        options: (q['options'] as List).cast<String>(),
+        titleHi: q['title_hi'] as String?,
+        optionsHi: (q['options_hi'] as List?)?.cast<String>(),
+        traits: (q['traits'] as List?)?.cast<String>(),
+      );
 }
 
 /// Pure-Dart inference for the multinomial logistic regression model trained
 /// by `ml/train_dosha_model.py` and shipped as `assets/ml/dosha_model.json`.
 ///
-/// Two-stage, adaptive flow:
-///  1. [predict] from the 30 base answers.
-///  2. If [needsTieBreaker] is true, ask the bank from [tieBreakerBankFor]
-///     and call [predict] again with `tieBreakerBank` / `tieBreakerAnswers`.
+///  1. [predict] from the base answers (18 in model v3).
+///  2. Optional: if [needsTieBreaker] is true, a client may ask the bank from
+///     [tieBreakerBankFor] and call [predict] again with `tieBreakerBank` /
+///     `tieBreakerAnswers`. The app currently does not.
+///
+/// [vikritiQuestions] ("the last 2 weeks") are not model inputs; score them
+/// with [VikritiResult.fromAnswers].
 ///
 /// No runtime dependency (no TensorFlow Lite, no server), so it runs
 /// identically on web, desktop and mobile.
@@ -87,9 +106,11 @@ class DoshaPredictor {
   final List<List<double>> coef; // [nClasses][nFeatures]
   final List<double> questionImportance;
   final List<QuizQuestion> questions;
+  final List<QuizQuestion> vikritiQuestions;
   final List<TieBreakerBank> tieBreakerBanks;
   final double confidenceThreshold;
   final double testAccuracy;
+  final int version;
 
   /// If the second-strongest dosha holds at least this share of the mix, the
   /// result is reported as a dual type (e.g. Vata-Pitta).
@@ -112,9 +133,11 @@ class DoshaPredictor {
     required this.coef,
     required this.questionImportance,
     required this.questions,
+    required this.vikritiQuestions,
     required this.tieBreakerBanks,
     required this.confidenceThreshold,
     required this.testAccuracy,
+    required this.version,
   });
 
   static DoshaPredictor? _cached;
@@ -151,6 +174,8 @@ class DoshaPredictor {
             .map((q) => TieBreakerQuestion(
                   title: q['title'] as String,
                   options: (q['options'] as List).cast<String>(),
+                  titleHi: q['title_hi'] as String?,
+                  optionsHi: (q['options_hi'] as List?)?.cast<String>(),
                 ))
             .toList(),
       ));
@@ -168,18 +193,20 @@ class DoshaPredictor {
           .map((v) => (v as num).toDouble())
           .toList(),
       questions: ((json['questions'] as List?) ?? const [])
-          .map((q) => QuizQuestion(
-                title: q['title'] as String,
-                options: (q['options'] as List).cast<String>(),
-              ))
+          .map((q) => QuizQuestion.fromJson(q as Map<String, dynamic>))
+          .toList(),
+      vikritiQuestions: ((json['vikriti_questions'] as List?) ?? const [])
+          .map((q) => QuizQuestion.fromJson(q as Map<String, dynamic>))
           .toList(),
       tieBreakerBanks: banks,
       confidenceThreshold:
           ((json['confidence_threshold'] as num?) ?? 0.7).toDouble(),
-      testAccuracy: ((json['test_accuracy_adaptive'] ??
+      testAccuracy: ((json['test_accuracy_stage1'] ??
+                  json['test_accuracy_adaptive'] ??
                   json['test_accuracy'] ??
                   0) as num)
           .toDouble(),
+      version: (json['version'] as int?) ?? 1,
     );
   }
 
@@ -283,6 +310,60 @@ class DoshaPredictor {
       type: type,
       usedTieBreaker: tieBreakerBank != null,
     );
+  }
+
+  /// The answers that pushed hardest toward [dosha], strongest first.
+  ///
+  /// The model is logistic regression, so each answer adds a fixed weight to
+  /// every dosha's score. An answer's push toward [dosha] is its weight for
+  /// [dosha] minus its average weight over all doshas; only answers with a
+  /// positive push are returned, at most [count]. Returns question indices.
+  List<int> topReasons(List<int> answers, String dosha, {int count = 3}) {
+    if (answers.length != nQuestions) {
+      throw ArgumentError('Expected $nQuestions answers, got ${answers.length}');
+    }
+    final c = classes.indexOf(dosha);
+    if (c < 0) throw ArgumentError('Unknown dosha $dosha');
+    final pushes = <(int, double)>[];
+    for (var q = 0; q < nQuestions; q++) {
+      final f = q * optionsPerQuestion + answers[q];
+      var mean = 0.0;
+      for (final row in coef) {
+        mean += row[f];
+      }
+      mean /= coef.length;
+      final push = coef[c][f] - mean;
+      if (push > 0) pushes.add((q, push));
+    }
+    pushes.sort((a, b) => b.$2.compareTo(a.$2));
+    return [for (final p in pushes.take(count)) p.$1];
+  }
+
+  /// One plain sentence explaining [p] from the user's [answers], e.g.
+  /// "Mostly from your slim build, dry skin and light sleep."
+  String explain(List<int> answers, DoshaPrediction p) {
+    String phrases(String dosha, int n) {
+      final qs = topReasons(answers, dosha, count: n);
+      final ts = [
+        for (final q in qs)
+          if (questions.length > q && (questions[q].traits?.length ?? 0) > answers[q]) questions[q].traits![answers[q]],
+      ];
+      if (ts.isEmpty) return '';
+      if (ts.length == 1) return ts.first;
+      return '${ts.sublist(0, ts.length - 1).join(', ')} and ${ts.last}';
+    }
+
+    if (p.type == 'Tridoshic') {
+      return 'Your answers are spread evenly across Vata, Pitta and Kapha.';
+    }
+    if (p.type.contains('-')) {
+      final a = p.ranked[0].key, b = p.ranked[1].key;
+      final pa = phrases(a, 2), pb = phrases(b, 2);
+      if (pa.isEmpty || pb.isEmpty) return '';
+      return '$a mostly from your $pa; $b from your $pb.';
+    }
+    final top = phrases(p.dominant, 3);
+    return top.isEmpty ? '' : 'Mostly from your $top.';
   }
 
   /// Convenience for the quiz screen, which stores answers as "A"/"B"/"C".

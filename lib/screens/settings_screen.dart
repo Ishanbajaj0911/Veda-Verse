@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:veda_verse/state/app_state.dart';
 import 'package:veda_verse/theme/vv.dart';
+import 'package:veda_verse/widgets/ai_key_card.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -40,6 +41,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
                   children: [
+                    Text('AI ASSISTANT', style: Vv.kicker(Vv.ink2)),
+                    const SizedBox(height: 8),
+                    const AiKeyCard(),
+                    const SizedBox(height: 18),
                     Text('PRIVACY & CONSENT', style: Vv.kicker(Vv.ink2)),
                     const SizedBox(height: 8),
                     VvCard(

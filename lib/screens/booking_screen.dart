@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:veda_verse/screens/health_summary_screen.dart';
 import 'package:veda_verse/screens/vaidya_screen.dart';
 import 'package:veda_verse/state/app_state.dart';
 import 'package:veda_verse/theme/vv.dart';
@@ -148,6 +149,11 @@ class _BookingScreenState extends State<BookingScreen> {
                                 Text('Share my health summary', style: Vv.sans(14, weight: FontWeight.w800)),
                                 const SizedBox(height: 3),
                                 Text('Intake, Prakriti and lab values — with this Vaidya only.', style: Vv.sans(12, color: Vv.muted, height: 1.45)),
+                                const SizedBox(height: 4),
+                                VvTap(
+                                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HealthSummaryScreen())),
+                                  child: Text('Preview summary', style: Vv.sans(12.5, weight: FontWeight.w800, color: Vv.green)),
+                                ),
                               ],
                             ),
                           ),

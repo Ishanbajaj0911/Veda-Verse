@@ -1,11 +1,17 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:veda_verse/ml/dosha_predictor.dart';
 import 'package:veda_verse/screens/prakriti_result_screen.dart';
 import 'package:veda_verse/state/app_state.dart';
 import 'package:veda_verse/theme/vv.dart';
 
-/// Prakriti quiz in the design's "3 questions per page" layout, driven by the
-/// on-device dosha model (30 base questions + optional 6-question tie-breaker).
+/// Prakriti quiz in the design's "3 questions per page" layout.
+///
+/// Pages 1-6 ask the model's 18 lifelong-nature questions (Prakriti); pages
+/// 7-8 ask the 6 "last 2 weeks" questions (Vikriti), which are scored by a
+/// simple count and never change the Prakriti result. Options are shown in a
+/// shuffled order and mapped back to [Vata, Pitta, Kapha] before scoring.
 class PrakritiQuizScreen extends StatefulWidget {
   const PrakritiQuizScreen({super.key});
 
@@ -16,52 +22,60 @@ class PrakritiQuizScreen extends StatefulWidget {
 class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
   DoshaPredictor? _model;
   List<_Q> _qs = const [];
+  int _nBase = 0; // first _nBase questions are Prakriti, the rest Vikriti
   int _page = 0;
-  final Map<int, int> _ans = {};
+  final Map<int, int> _ans = {}; // question index -> option index in [V, P, K]
   bool _warn = false;
   int? _last;
   bool _busy = false;
 
-  // Tie-breaker round
-  TieBreakerBank? _bank;
-  final Map<int, int> _tbAns = {};
-
   static const _perPage = 3;
+  static const _dotColors = [Vv.vataBar, Vv.goldSoft, Vv.kaphaBar];
 
   static const _stories = [
     ('Your body', 'The shape of ', 'you', 'Think about most of your life, not just this week.'),
-    ('Your body', 'Small ', 'details', 'The little things that stay the same over years.'),
-    ('Your body', 'Finer ', 'features', 'Nails, teeth, complexion — as they usually are.'),
-    ('Mind & energy', 'How you ', 'think', 'Pace, memory and how you take things in.'),
-    ('Mind & energy', 'Night and ', 'day', 'Your natural rhythm of rest and energy.'),
-    ('Digestion', 'When you’re ', 'hungry', 'Agni, your digestive fire, on a normal day.'),
+    ('Your body', 'Small ', 'details', 'The little things that stay the same over the years.'),
+    ('Your body', 'Heat and ', 'hunger', 'How your body handles heat, weather and meals.'),
     ('Digestion', 'Your ', 'gut', 'No wrong answers. Pick what feels most like you.'),
-    ('Mind & energy', 'How you ', 'react', 'Under pressure, and in different weather.'),
-    ('Your nature', 'Almost ', 'there', 'How you move, speak and spend.'),
-    ('Your nature', 'Last ', 'three', 'Still about most of your life, not this week.'),
+    ('Mind & energy', 'Night and ', 'day', 'Your natural rhythm of rest, work and talk.'),
+    ('Mind & energy', 'How you ', 'think', 'How you learn, feel and react, most of the time.'),
+    ('Right now', 'The last ', 'two weeks', 'This shows how you feel now, not your nature.'),
+    ('Right now', 'Almost ', 'there', 'Last three, still about the last two weeks.'),
   ];
 
   @override
   void initState() {
     super.initState();
     DoshaPredictor.load().then((m) {
-      final raw = m.questions;
       setState(() {
         _model = m;
-        _qs = [for (final q in raw) _Q(q.title, q.options)];
+        _nBase = m.questions.length;
+        _qs = [
+          for (final (i, q) in [...m.questions, ...m.vikritiQuestions].indexed)
+            _Q(q.title, q.options, _shuffled(i, q.options.length)),
+        ];
       });
     });
   }
 
-  int get _pages => (_qs.length / _perPage).ceil();
-  bool get _inTb => _bank != null;
+  /// Fixed per-question shuffle, so the order is stable while the user goes
+  /// back and forth, and "first option = Vata" is never a visible pattern.
+  static List<int> _shuffled(int question, int n) =>
+      List<int>.generate(n, (i) => i)..shuffle(math.Random(question * 7919 + 17));
 
+  int get _pages => (_qs.length / _perPage).ceil();
+  bool get _onVikritiPage => _page * _perPage >= _nBase;
+
+  /// Running mix over the Prakriti answers only.
   Map<String, int> get _pct {
     final c = {'V': 0, 'P': 0, 'K': 0};
-    for (final a in _ans.values) {
-      c[['V', 'P', 'K'][a]] = c[['V', 'P', 'K'][a]]! + 1;
+    var t = 0;
+    for (final e in _ans.entries) {
+      if (e.key >= _nBase) continue;
+      final k = ['V', 'P', 'K'][e.value];
+      c[k] = c[k]! + 1;
+      t++;
     }
-    final t = _ans.length;
     if (t == 0) return {'v': 0, 'p': 0, 'k': 0};
     final v = (c['V']! * 100 / t).round();
     final p = (c['P']! * 100 / t).round();
@@ -81,29 +95,25 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
     if (m == null || _busy) return;
     setState(() => _busy = true);
     try {
-      final answers = [for (var i = 0; i < _qs.length; i++) _ans[i]!];
-      DoshaPrediction p;
-      if (_inTb) {
-        p = m.predict(
-          answers,
-          tieBreakerBank: _bank,
-          tieBreakerAnswers: [for (var j = 0; j < DoshaPredictor.tieBreakerQuestionsPerBank; j++) _tbAns[j]!],
-        );
-      } else {
-        p = m.predict(answers);
-        if (m.needsTieBreaker(p)) {
-          setState(() {
-            _bank = m.tieBreakerBankFor(p);
-            _tbAns.clear();
-            _warn = false;
-          });
-          return;
-        }
-      }
-      AppState.instance.update((s) => s.prediction = p);
+      // Straight to the result: no extra tie-breaker round. A close call
+      // shows as a dual type (e.g. Vata-Pitta) on the result screen.
+      final p = m.predict([for (var i = 0; i < _nBase; i++) _ans[i]!]);
+      AppState.instance.update((s) {
+        s.prediction = p;
+        s.prakritiAnswers = [for (var i = 0; i < _nBase; i++) _ans[i]!];
+        // Vikriti = these answers + the intake concerns, see AppState.vikriti.
+        s.vikritiAnswers = m.vikritiQuestions.isEmpty ? null : [for (var i = _nBase; i < _qs.length; i++) _ans[i]!];
+        s.vikritiLabels = [for (final q in m.vikritiQuestions) q.options];
+        s.dinacharyaDone = {}; // new plan, start fresh
+      });
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => PrakritiResultScreen(prediction: p)),
+        MaterialPageRoute(
+          builder: (_) => PrakritiResultScreen(
+            prediction: p,
+            why: m.explain([for (var i = 0; i < _nBase; i++) _ans[i]!], p),
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -111,14 +121,6 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
   }
 
   void _next() {
-    if (_inTb) {
-      if (_tbAns.length < DoshaPredictor.tieBreakerQuestionsPerBank) {
-        setState(() => _warn = true);
-        return;
-      }
-      _finish();
-      return;
-    }
     if (!_pageDone(_page)) {
       setState(() => _warn = true);
       return;
@@ -142,8 +144,8 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
     final lead = _ans.isEmpty
         ? 'Answer to see'
         : '${['Vata', 'Pitta', 'Kapha'][[pct['v']!, pct['p']!, pct['k']!].indexOf([pct['v']!, pct['p']!, pct['k']!].reduce((a, b) => a > b ? a : b))]} leading';
-    final isLast = _inTb || _page == _pages - 1;
-    final done = _inTb ? _tbAns.length == DoshaPredictor.tieBreakerQuestionsPerBank : _pageDone(_page);
+    final isLast = _page == _pages - 1;
+    final done = _pageDone(_page);
 
     return Scaffold(
       body: VvFrame(
@@ -165,23 +167,19 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
                                 if (i > 0) const SizedBox(width: 4),
                                 Expanded(
                                   child: VvTap(
-                                    onTap: _inTb ? null : () => setState(() {
+                                    onTap: () => setState(() {
                                       _page = i;
                                       _warn = false;
                                     }),
                                     child: Container(
                                       height: 8,
                                       decoration: BoxDecoration(
-                                        color: (!_inTb && i == _page) ? Vv.gold : (_pageDone(i) ? Vv.green : Vv.border2),
+                                        color: i == _page ? Vv.gold : (_pageDone(i) ? Vv.green : Vv.border2),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ],
-                              if (_inTb) ...[
-                                const SizedBox(width: 4),
-                                Expanded(child: Container(height: 8, decoration: BoxDecoration(color: Vv.gold, borderRadius: BorderRadius.circular(8)))),
                               ],
                             ],
                           ),
@@ -244,14 +242,14 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
               Expanded(
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 280),
-                  child: _inTb ? _tbPage() : _basePage(),
+                  child: _basePage(),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 10, 16, 26),
                 child: Row(
                   children: [
-                    if (!_inTb && _page > 0) ...[
+                    if (_page > 0) ...[
                       VvTap(
                         onTap: () => setState(() {
                           _page--;
@@ -305,7 +303,8 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
       key: ValueKey('p$_page'),
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
       children: [
-        Text('${st.$1.toUpperCase()} · PAGE ${_page + 1} OF $_pages', style: Vv.kicker(Vv.brown, spacing: 1.2)),
+        Text('${st.$1.toUpperCase()} · PAGE ${_page + 1} OF $_pages',
+            style: Vv.kicker(_onVikritiPage ? Vv.blue : Vv.brown, spacing: 1.2)),
         const SizedBox(height: 4),
         SerifTitle(st.$2, st.$3, size: 28, bColor: Vv.green, height: 1.1),
         const SizedBox(height: 4),
@@ -315,46 +314,15 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
           _card(
             n: i + 1,
             text: _qs[i].title,
-            options: _qs[i].options,
-            picked: _ans[i],
+            // Shown in shuffled order; taps map back to the [V, P, K] index.
+            options: [for (final o in _qs[i].order) _qs[i].options[o]],
+            picked: _ans[i] == null ? null : _qs[i].order.indexOf(_ans[i]!),
             missing: _warn && !_ans.containsKey(i),
             pop: _last == i,
-            dots: const [Vv.vataBar, Vv.goldSoft, Vv.kaphaBar],
+            dots: [for (final o in _qs[i].order) _dotColors[o]],
             onPick: (k) => setState(() {
-              _ans[i] = k;
+              _ans[i] = _qs[i].order[k];
               _last = i;
-              _warn = false;
-            }),
-          ),
-          const SizedBox(height: 12),
-        ],
-      ],
-    );
-  }
-
-  Widget _tbPage() {
-    final b = _bank!;
-    return ListView(
-      key: const ValueKey('tb'),
-      padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
-      children: [
-        Text('TIE-BREAKER · ${b.title.toUpperCase()}', style: Vv.kicker(Vv.blue, spacing: 1.2)),
-        const SizedBox(height: 4),
-        SerifTitle('Two are ', 'close', size: 28, bColor: Vv.green, height: 1.1),
-        const SizedBox(height: 4),
-        Text('Six quick either-or questions to separate ${b.pair[0]} from ${b.pair[1]}.', style: Vv.sans(13, color: Vv.ink2, height: 1.45)),
-        const SizedBox(height: 12),
-        for (var j = 0; j < b.questions.length; j++) ...[
-          _card(
-            n: j + 1,
-            text: b.questions[j].title,
-            options: b.questions[j].options,
-            picked: _tbAns[j],
-            missing: _warn && !_tbAns.containsKey(j),
-            pop: false,
-            dots: const [Vv.vataBar, Vv.goldSoft],
-            onPick: (k) => setState(() {
-              _tbAns[j] = k;
               _warn = false;
             }),
           ),
@@ -453,6 +421,7 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
 
 class _Q {
   final String title;
-  final List<String> options;
-  const _Q(this.title, this.options);
+  final List<String> options; // [Vata, Pitta, Kapha]
+  final List<int> order; // display position -> option index
+  const _Q(this.title, this.options, this.order);
 }

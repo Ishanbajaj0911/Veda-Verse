@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:veda_verse/ai/health_ai.dart';
 import 'package:veda_verse/app_shell.dart';
 import 'package:veda_verse/state/app_state.dart';
 import 'package:veda_verse/theme/vv.dart';
+import 'package:veda_verse/widgets/doc_picker.dart';
 
 /// "Safety basics" – 4-step intake. When [editing] is true it is opened from
 /// the profile ("My Profile") and pops instead of entering the app.
 class IntakeScreen extends StatefulWidget {
   final bool editing;
-  const IntakeScreen({super.key, this.editing = false});
+  const IntakeScreen({super.key, this.editing = false, this.ai});
+
+  /// Gemini helper for the prescription scan; tests pass a fake.
+  final HealthAi? ai;
 
   @override
   State<IntakeScreen> createState() => _IntakeScreenState();
@@ -17,6 +22,40 @@ class _IntakeScreenState extends State<IntakeScreen> {
   final s = AppState.instance;
   int _page = 0;
   bool _warn = false;
+  bool _readingRx = false;
+
+  void _toast(String m) {
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m)));
+  }
+
+  /// Reads medicine names from a prescription photo or PDF with Gemini and
+  /// adds the new ones to the list. The user can remove any that are wrong.
+  Future<void> _scanPrescription() async {
+    final ai = widget.ai ?? HealthAi();
+    final file = await pickDocument(context, what: 'prescription');
+    if (file == null || !mounted) return;
+    if (!ai.canRead) {
+      _toast('Reading prescriptions works in the Android and iPhone app. Please type the names here.');
+      return;
+    }
+    setState(() => _readingRx = true);
+    try {
+      final found = await ai.readPrescription(file);
+      final have = _meds.map((m) => m.toLowerCase()).toSet();
+      final added = [for (final m in found) if (!have.contains(m.toLowerCase())) m];
+      setState(() => _meds.addAll(added));
+      _toast(added.isEmpty
+          ? (found.isEmpty ? 'No medicine names could be read. Please type them.' : 'These medicines are already on your list.')
+          : 'Added ${added.join(', ')}. Please check the names are right.');
+    } on NotThatDocument catch (e) {
+      _toast(e.message);
+    } catch (e) {
+      debugPrint('Prescription scan: $e');
+      _toast('Couldn’t read the prescription. Check your internet or type the names.');
+    } finally {
+      if (mounted) setState(() => _readingRx = false);
+    }
+  }
 
   late final TextEditingController _name = TextEditingController(text: s.name);
   late final TextEditingController _age = TextEditingController(text: '${s.age}');
@@ -313,17 +352,27 @@ class _IntakeScreenState extends State<IntakeScreen> {
           Align(
             alignment: Alignment.centerLeft,
             child: VvTap(
-              onTap: () {},
+              onTap: _readingRx ? null : _scanPrescription,
               child: Container(
                 constraints: const BoxConstraints(minHeight: 40),
                 padding: const EdgeInsets.symmetric(horizontal: 14),
-                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: Vv.surface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Vv.border3, width: 1.5),
                 ),
-                child: Text('Scan prescription instead', style: Vv.sans(13, weight: FontWeight.w700, color: Vv.green)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_readingRx)
+                      const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Vv.green))
+                    else
+                      const Icon(Icons.document_scanner_outlined, size: 16, color: Vv.green),
+                    const SizedBox(width: 8),
+                    Text(_readingRx ? 'Reading prescription…' : 'Scan prescription instead',
+                        style: Vv.sans(13, weight: FontWeight.w700, color: Vv.green)),
+                  ],
+                ),
               ),
             ),
           ),

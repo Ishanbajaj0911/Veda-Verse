@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:veda_verse/engine/plan_engine.dart';
 import 'package:veda_verse/screens/prakriti_quiz_screen.dart';
 import 'package:veda_verse/screens/profile_menu_screen.dart';
 import 'package:veda_verse/screens/program_screen.dart';
@@ -9,13 +10,6 @@ import 'package:veda_verse/theme/vv.dart';
 /// Dosha analysis tab.
 class DoshaScreen extends StatelessWidget {
   const DoshaScreen({super.key});
-
-  static const _tasks = [
-    ('Warm water on waking', 'Calms Vata, eases digestion', '6:30'),
-    ('Anulom Vilom · 10 min', 'Cools Pitta, steadies the mind', '7:00'),
-    ('Main meal before 2 pm', 'Agni is strongest at midday', '13:00'),
-    ('Screens off by 10 pm', 'For your poor-sleep concern', '22:00'),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +26,9 @@ class DoshaScreen extends StatelessWidget {
         ];
         final label = s.prakritiLabel;
         final parts = label.split(' ');
+        final input = s.engineInput;
+        final plan = dailyPlan(input);
+        final note = vaidyaNote(input);
         return Column(
           children: [
             SizedBox(height: MediaQuery.of(context).padding.top),
@@ -79,7 +76,9 @@ class DoshaScreen extends StatelessWidget {
                                         Text('YOUR PRAKRITI · NATURAL BODY TYPE',
                                             style: Vv.sans(12, weight: FontWeight.w700, color: Vv.onDeepMuted, letterSpacing: 1)),
                                         const SizedBox(height: 4),
-                                        parts.length > 1
+                                        !s.hasPrakriti
+                                            ? SerifTitle('Not ', 'checked yet', size: 32, color: Vv.bg, letterSpacing: -0.3)
+                                            : parts.length > 1
                                             ? SerifTitle('${parts.first} ', parts.sublist(1).join(' '), size: 32, color: Vv.bg, letterSpacing: -0.3)
                                             : Text(label, style: Vv.serif(32, color: Vv.bg, letterSpacing: -0.3)),
                                       ],
@@ -114,18 +113,25 @@ class DoshaScreen extends StatelessWidget {
                                 decoration: BoxDecoration(color: const Color(0x2EE08A1E), borderRadius: BorderRadius.circular(14)),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.arrow_upward_rounded, size: 20, color: Vv.goldSoft),
+                                    Icon(s.hasPrakriti ? Icons.arrow_upward_rounded : Icons.quiz_outlined, size: 20, color: Vv.goldSoft),
                                     const SizedBox(width: 10),
                                     Expanded(
-                                      child: Text.rich(
-                                        TextSpan(
-                                          style: Vv.sans(13, color: Vv.bg, height: 1.45),
-                                          children: [
-                                            TextSpan(text: 'Right now (Vikriti): ', style: Vv.sans(13, weight: FontWeight.w800, color: Vv.bg)),
-                                            const TextSpan(text: 'Pitta is running high — matches your acidity and poor sleep.'),
-                                          ],
-                                        ),
-                                      ),
+                                      child: s.hasPrakriti
+                                          ? Text.rich(
+                                              TextSpan(
+                                                style: Vv.sans(13, color: Vv.bg, height: 1.45),
+                                                children: [
+                                                  TextSpan(text: 'Right now (Vikriti): ', style: Vv.sans(13, weight: FontWeight.w800, color: Vv.bg)),
+                                                  TextSpan(
+                                                      text: s.vikriti?.summary ??
+                                                          'retake the quiz to see how you feel right now.'),
+                                                ],
+                                              ),
+                                            )
+                                          : Text(
+                                              'Take the Prakriti quiz to see your Vata, Pitta and Kapha mix. It takes about 4 minutes.',
+                                              style: Vv.sans(13, color: Vv.bg, height: 1.45),
+                                            ),
                                     ),
                                   ],
                                 ),
@@ -154,7 +160,7 @@ class DoshaScreen extends StatelessWidget {
                           context,
                           Icons.refresh_rounded,
                           s.prediction == null ? 'Take Prakriti quiz' : 'Retake Prakriti quiz',
-                          '30 questions · 4 min',
+                          '24 questions · 4 min',
                           () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PrakritiQuizScreen())),
                         ),
                       ),
@@ -207,12 +213,32 @@ class DoshaScreen extends StatelessWidget {
                               TextSpan(text: 'Today’s Dinacharya', style: Vv.serif(17, weight: FontWeight.w700)),
                               TextSpan(text: ' · daily routine', style: Vv.sans(13, weight: FontWeight.w600, color: Vv.muted)),
                             ])),
-                            Text('${s.dinacharyaDone.length}/4 done', style: Vv.sans(13, weight: FontWeight.w700, color: Vv.green)),
+                            Text('${plan.where((p) => s.doneToday.contains(p.item.id)).length}/${plan.length} done',
+                                style: Vv.sans(13, weight: FontWeight.w700, color: Vv.green)),
                           ],
                         ),
+                        const SizedBox(height: 4),
+                        Text(
+                          input.focus == null
+                              ? 'Picked for your concerns and ${rituLabel(input.ritu!)}. Take the quiz to fit it to your body type.'
+                              : 'Picked for ${input.focus == input.vikriti?.raised ? 'your raised ${input.focus}' : 'your ${input.focus}'}, your concerns and ${rituLabel(input.ritu!)}.',
+                          style: Vv.sans(12, color: Vv.muted),
+                        ),
                         const SizedBox(height: 8),
-                        for (var i = 0; i < _tasks.length; i++)
-                          _task(s, i),
+                        for (final p in plan) _task(s, p),
+                        if (note != null) ...[
+                          const SizedBox(height: 4),
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(color: Vv.cream, borderRadius: BorderRadius.circular(12)),
+                            child: VvNote(
+                              text: note,
+                              color: Vv.brownDark,
+                              style: Vv.sans(12, color: Vv.brownDark, height: 1.45),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -229,11 +255,12 @@ class DoshaScreen extends StatelessWidget {
     );
   }
 
-  Widget _task(AppState s, int i) {
-    final done = s.dinacharyaDone.contains(i);
-    final t = _tasks[i];
+  Widget _task(AppState s, PlannedItem p) {
+    final id = p.item.id;
+    final done = s.doneToday.contains(id);
+    final t = (p.item.title, p.reason, p.item.time);
     return VvTap(
-      onTap: () => s.update((st) => done ? st.dinacharyaDone.remove(i) : st.dinacharyaDone.add(i)),
+      onTap: () => s.toggleDone(id),
       child: Container(
         constraints: const BoxConstraints(minHeight: 56),
         padding: const EdgeInsets.symmetric(vertical: 8),

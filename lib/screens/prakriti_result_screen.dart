@@ -3,12 +3,17 @@ import 'package:veda_verse/app_shell.dart';
 import 'package:veda_verse/ml/dosha_predictor.dart';
 import 'package:veda_verse/screens/booking_screen.dart';
 import 'package:veda_verse/screens/vaidya_screen.dart';
+import 'package:veda_verse/state/app_state.dart';
 import 'package:veda_verse/theme/vv.dart';
 
 /// Prakriti result – shows the dosha model's probabilities.
 class PrakritiResultScreen extends StatelessWidget {
   final DoshaPrediction prediction;
-  const PrakritiResultScreen({super.key, required this.prediction});
+
+  /// One sentence naming the answers that drove the result, from
+  /// [DoshaPredictor.explain]. Hidden when null.
+  final String? why;
+  const PrakritiResultScreen({super.key, required this.prediction, this.why});
 
   static const _blurb = {
     'Vata': 'Air + space: quick, creative and light. You thrive on warmth, routine and enough rest.',
@@ -28,6 +33,7 @@ class PrakritiResultScreen extends StatelessWidget {
       ('Kapha', 'earth + water', 100 - v - pi, Vv.leaf),
     ];
     final second = p.ranked[1];
+    final vikriti = AppState.instance.vikriti;
     final String a, b;
     if (p.type == 'Tridoshic') {
       a = 'Tridoshic\n';
@@ -59,6 +65,35 @@ class PrakritiResultScreen extends StatelessWidget {
                         SerifTitle(a, b, size: 46, color: Vv.bg, bColor: Vv.goldLight, height: 1.02, letterSpacing: -0.5),
                         const SizedBox(height: 14),
                         Text(_blurb[p.type == 'Tridoshic' ? 'Tridoshic' : p.dominant]!, style: Vv.sans(15, color: Vv.onDeepMuted2, height: 1.55)),
+                        if (why != null && why!.isNotEmpty) ...[
+                          const SizedBox(height: 14),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: const Color(0x14FFFFFF),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.only(top: 1),
+                                  child: Icon(Icons.lightbulb_outline_rounded, size: 18, color: Vv.goldLight),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text.rich(TextSpan(
+                                    style: Vv.sans(14, color: Vv.bg, height: 1.45),
+                                    children: [
+                                      TextSpan(text: 'Why: ', style: Vv.sans(14, weight: FontWeight.w800, color: Vv.goldLight)),
+                                      TextSpan(text: why),
+                                    ],
+                                  )),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 28),
                         for (final r in rows) ...[
                           Row(
@@ -101,17 +136,26 @@ class PrakritiResultScreen extends StatelessWidget {
                               Text('RIGHT NOW', style: Vv.kicker(Vv.goldLight)),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: Text.rich(TextSpan(
-                                  style: Vv.sans(14, color: Vv.bg, height: 1.4),
-                                  children: [
-                                    TextSpan(text: '${second.key} is your close second', style: Vv.sans(14, weight: FontWeight.w800, color: Vv.bg)),
-                                    TextSpan(
-                                      text: p.usedTieBreaker
-                                          ? ' — confirmed with a tie-breaker round. Your plan starts here.'
-                                          : ' — your daily plan balances both.',
-                                    ),
-                                  ],
-                                )),
+                                child: vikriti != null
+                                    ? Text.rich(TextSpan(
+                                        style: Vv.sans(14, color: Vv.bg, height: 1.4),
+                                        children: vikriti.raised == null
+                                            ? [
+                                                TextSpan(text: 'No single dosha stands out', style: Vv.sans(14, weight: FontWeight.w800, color: Vv.bg)),
+                                                const TextSpan(text: ' in the last two weeks. Keep your routine steady.'),
+                                              ]
+                                            : [
+                                                TextSpan(text: '${vikriti.raised} is raised', style: Vv.sans(14, weight: FontWeight.w800, color: Vv.bg)),
+                                                TextSpan(text: ' (your Vikriti) — matches your ${vikriti.signs.take(2).map((x) => x.toLowerCase()).join(' and ')}. Your plan starts here.'),
+                                              ],
+                                      ))
+                                    : Text.rich(TextSpan(
+                                        style: Vv.sans(14, color: Vv.bg, height: 1.4),
+                                        children: [
+                                          TextSpan(text: '${second.key} is your close second', style: Vv.sans(14, weight: FontWeight.w800, color: Vv.bg)),
+                                          const TextSpan(text: ' — your daily plan balances both.'),
+                                        ],
+                                      )),
                               ),
                             ],
                           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:veda_verse/screens/health_summary_screen.dart';
 import 'package:veda_verse/screens/booking_screen.dart';
 import 'package:veda_verse/screens/profile_menu_screen.dart';
 import 'package:veda_verse/state/app_state.dart';
@@ -129,6 +130,14 @@ class _VaidyaScreenState extends State<VaidyaScreen> {
                               style: Vv.sans(12, color: Vv.onDeepMuted3, height: 1.4)),
                         ),
                       ],
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HealthSummaryScreen())),
+                        style: TextButton.styleFrom(padding: const EdgeInsets.only(left: 24), minimumSize: const Size(0, 36)),
+                        child: Text('View my summary', style: Vv.sans(12.5, weight: FontWeight.w800, color: Vv.goldLight)),
+                      ),
                     ),
                     const SizedBox(height: 12),
                     VvButton(

@@ -89,9 +89,9 @@ def main():
 
     print(f"n={n}, tie-breakers asked for {asked.mean():.1%} of users\n")
     print(f"{'':34}{'dominant acc':>14}{'type acc':>10}{'mix MAE':>9}")
-    print(f"{'model, 30 questions':34}{acc(p0):14.3f}{tacc(p0):10.3f}{np.abs(p0-p).mean():9.3f}")
+    print(f"{f'model, {N_QUESTIONS} questions':34}{acc(p0):14.3f}{tacc(p0):10.3f}{np.abs(p0-p).mean():9.3f}")
     print(f"{'model, + tie-breakers':34}{acc(p1):14.3f}{tacc(p1):10.3f}{np.abs(p1-p).mean():9.3f}")
-    print(f"{'Bayes oracle, 30 questions':34}{acc(bay0):14.3f}{tacc(bay0_mean):10.3f}{np.abs(bay0_mean-p).mean():9.3f}")
+    print(f"{f'Bayes oracle, {N_QUESTIONS} questions':34}{acc(bay0):14.3f}{tacc(bay0_mean):10.3f}{np.abs(bay0_mean-p).mean():9.3f}")
     print(f"{'Bayes oracle, + tie-breakers':34}{acc(bay1):14.3f}{tacc(bay1_mean):10.3f}{np.abs(bay1_mean-p).mean():9.3f}")
 
     print("\nAmong users who were asked tie-breakers:")

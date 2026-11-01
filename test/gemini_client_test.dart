@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show Uint8List;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -88,6 +89,37 @@ void main() {
     final r = GeminiClient.parse(body);
     expect(r.text, 'Abhyanga helps Vata.');
     expect(r.source, isNull);
+  });
+
+  test('a shared document is sent inline with the latest message only', () async {
+    late List contents;
+    final client = GeminiClient(
+      apiKey: 'k',
+      client: MockClient((req) async {
+        contents = jsonDecode(req.body)['contents'] as List;
+        return http.Response(_reply('ok'), 200);
+      }),
+    );
+    final pdf = Attachment('report.pdf', 'application/pdf', Uint8List.fromList([1, 2, 3]));
+    final photo = Attachment('old.jpg', 'image/jpeg', Uint8List.fromList([9, 9]));
+    await client.ask([
+      ChatTurn(true, 'earlier photo', attachments: [photo]),
+      const ChatTurn(false, 'noted'),
+      ChatTurn(true, '', attachments: [pdf]),
+    ]);
+    final first = contents.first['parts'] as List;
+    expect(first.any((p) => p.containsKey('inlineData')), isFalse, reason: 'earlier files are not re-sent');
+    expect(first.last['text'], contains('[shared earlier: old.jpg]'));
+    final last = contents.last['parts'] as List;
+    expect(last.first['inlineData'], {'mimeType': 'application/pdf', 'data': base64Encode([1, 2, 3])});
+    expect(last.last['text'], 'Please explain this in simple words.');
+  });
+
+  test('only PDFs, photos and text files are accepted', () {
+    expect(Attachment.mimeFor('Report.PDF'), 'application/pdf');
+    expect(Attachment.mimeFor('scan.jpeg'), 'image/jpeg');
+    expect(Attachment.mimeFor('notes.docx'), isNull);
+    expect(Attachment.mimeFor('noextension'), isNull);
   });
 
   test('without a key it refuses instead of calling the network', () async {
