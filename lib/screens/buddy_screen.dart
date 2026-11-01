@@ -8,6 +8,7 @@ import 'package:veda_verse/ai/health_ai.dart';
 import 'package:veda_verse/ai/safety.dart';
 import 'package:veda_verse/app_shell.dart';
 import 'package:veda_verse/engine/plan_engine.dart';
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/screens/profile_menu_screen.dart';
 import 'package:veda_verse/screens/settings_screen.dart';
 import 'package:veda_verse/state/app_state.dart';
@@ -32,9 +33,16 @@ class _Msg {
 
   /// Show card text in Hindi.
   final bool hindi;
-  const _Msg(this.kind, this.text, {this.source, this.files = const [], this.blocked = false, this.hindi = false});
 
-  _Msg asBlocked() => _Msg(kind, text, source: source, files: files, blocked: true, hindi: hindi);
+  /// The opening hello; shown in the current app language.
+  final bool greeting;
+  const _Msg(this.kind, this.text,
+      {this.source, this.files = const [], this.blocked = false, this.hindi = false, this.greeting = false, this.held = false});
+
+  /// A Vaidya card that replaced Gemini's answer (rather than the question).
+  final bool held;
+
+  _Msg asBlocked() => _Msg(kind, text, source: source, files: files, blocked: true, hindi: hindi, greeting: greeting, held: held);
 }
 
 /// Ayu Buddy: everyday wellness suggestions by text, voice or shared document.
@@ -66,8 +74,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
 
   bool _thinking = false;
   bool _sttReady = false;
-  /// Voice language; starts from the language picked on the welcome screen.
-  late bool _hindi = AppState.instance.language != 'EN';
+  /// Voice language; starts from the app language.
+  late bool _hindi = Lang.hi;
   _Voice _voice = _Voice.idle;
   String _heard = '';
   String? _voiceNote;
@@ -77,11 +85,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
   final List<Attachment> _pending = [];
 
   final List<_Msg> _msgs = [
-    _Msg(
-      _Kind.answer,
-      'Namaste ${AppState.instance.firstName}! I’m Ayu Buddy. I can suggest food, sleep, stress, yoga and daily-routine habits for your dosha, in Hindi or English. You can also share a lab report or photo and I’ll explain it in simple words.',
-    ),
+    _Msg(_Kind.answer, _greetingText(), greeting: true),
   ];
+
+  static String _greetingText() => trf(
+        'Namaste {name}! I’m Ayu Buddy. I can suggest food, sleep, stress, yoga and daily-routine habits for your dosha, in Hindi or English. You can also share a lab report or photo and I’ll explain it in simple words.',
+        {'name': AppState.instance.firstName},
+      );
 
   @override
   void initState() {
@@ -135,7 +145,9 @@ class _BuddyScreenState extends State<BuddyScreen> {
   /// checks the answer, and returns Buddy's reply.
   Future<_Msg> _handle(String text, {bool voice = false, List<Attachment> files = const []}) async {
     final s = AppState.instance;
-    final hindi = _hindi || _isHindi(text);
+    // Safety cards follow the app language, the voice language or the script
+    // the user wrote in.
+    final hindi = Lang.hi || _hindi || _isHindi(text);
     final earlier = [for (final m in _msgs) if (m.kind == _Kind.user) m.text];
     final verdict = Safety.checkMessage(text, earlier: earlier, myMedicines: s.medicines);
     final userIndex = _msgs.length;
@@ -155,12 +167,12 @@ class _BuddyScreenState extends State<BuddyScreen> {
             ChatTurn(m.kind == _Kind.user, m.text, attachments: m.files),
       ];
       final r = await _ai.ask(history, voice: voice, hindi: _hindi);
-      final check = Safety.checkAnswer(r.text);
+      final check = Safety.checkAnswer(r.text, myConditions: s.conditions);
       if (check.blocked) {
         debugPrint('Ayu Buddy answer replaced: ${check.matched}');
         s.buddyFlags.add(BuddyFlag(DateTime.now(), check.level, text));
         if (mounted) setState(() => _msgs[userIndex] = _msgs[userIndex].asBlocked());
-        return _card(check.level, hindi);
+        return _card(check.level, hindi, held: true);
       }
       return _Msg(_Kind.answer, r.text);
     } catch (e) {
@@ -171,10 +183,10 @@ class _BuddyScreenState extends State<BuddyScreen> {
     }
   }
 
-  _Msg _card(SafetyLevel level, bool hindi) => switch (level) {
+  _Msg _card(SafetyLevel level, bool hindi, {bool held = false}) => switch (level) {
         SafetyLevel.selfHarm => _Msg(_Kind.selfHarm, '', blocked: true, hindi: hindi),
         SafetyLevel.emergency => _Msg(_Kind.emergency, '', blocked: true, hindi: hindi),
-        _ => _Msg(_Kind.vaidya, AppState.instance.medicines.join(', '), blocked: true, hindi: hindi),
+        _ => _Msg(_Kind.vaidya, AppState.instance.medicines.join(', '), blocked: true, hindi: hindi, held: held),
       };
 
   /// Concern each offline topic maps to, with the words that signal it.
@@ -189,32 +201,43 @@ class _BuddyScreenState extends State<BuddyScreen> {
     ('Irregular periods', r'period|pcos|pcod|mahwari|cycle|माहवारी|पीरियड'),
   ];
 
-  static const _foodLine = {
-    'Vata': 'warm, freshly cooked, lightly spiced meals like khichdi and soups, at regular times; skip cold and dry snacks',
-    'Pitta': 'cooling, less spicy meals like rice, moong dal, cucumber and sweet fruit; go easy on chilli, sour and fried food',
-    'Kapha': 'light, warm meals with more vegetables and pulses; less sweet, fried and heavy food, and no late dinners',
-  };
+  /// Food advice per dosha, as a full sentence in the current language.
+  static Map<String, String> get _foodLine => {
+        'Vata': tr('Favour warm, freshly cooked, lightly spiced meals like khichdi and soups, at regular times; skip cold and dry snacks.'),
+        'Pitta': tr('Favour cooling, less spicy meals like rice, moong dal, cucumber and sweet fruit; go easy on chilli, sour and fried food.'),
+        'Kapha': tr('Favour light, warm meals with more vegetables and pulses; less sweet, fried and heavy food, and no late dinners.'),
+      };
+
+  static const _doshaHi = {'Vata': 'वात', 'Pitta': 'पित्त', 'Kapha': 'कफ'};
+
+  static String _dosha(String d) => Lang.hi ? (_doshaHi[d] ?? d) : d;
+
+  /// Plan text (already in the app language, from the engine) inside a
+  /// sentence: lower-cased in English.
+  static String _inline(String s) => Lang.hi ? s : s.toLowerCase();
 
   /// Offline answer built from the user's own plan: their dosha, concerns,
   /// allergies, conditions and the season. No made-up sources.
   _Msg _offline(String text, {List<Attachment> files = const [], bool failed = false}) {
     final s = AppState.instance;
-    final lead = failed ? 'I can’t reach the internet right now, so here’s a suggestion from your plan. ' : '';
+    final lead = failed ? tr('I can’t reach the internet right now, so here’s a suggestion from your plan. ') : '';
     if (files.isNotEmpty) {
-      return const _Msg(_Kind.answer,
-          'I need an internet connection to read documents. You can open Dosha → Scan lab report, or share it with your Vaidya when you book.');
+      return _Msg(_Kind.answer,
+          tr('I need an internet connection to read documents. You can open Dosha → Scan lab report, or share it with your Vaidya when you book.'));
     }
     final t = Safety.normalize(text);
     final base = s.engineInput;
     if (RegExp(r'food|diet|eat|khana|khaana|meal|खाना|भोजन').hasMatch(t)) {
       final focus = base.focus;
       final line = focus == null
-          ? 'warm, freshly cooked meals at regular times, with your main meal before 2 pm'
+          ? tr('Favour warm, freshly cooked meals at regular times, with your main meal before 2 pm.')
           : _foodLine[focus]!;
       final why = focus == null
-          ? 'Take the Prakriti quiz and I can fit this to your body type.'
-          : 'This suits your ${focus == base.vikriti?.raised ? 'raised ' : ''}$focus.';
-      return _Msg(_Kind.answer, '${lead}Favour $line. $why');
+          ? tr('Take the Prakriti quiz and I can fit this to your body type.')
+          : focus == base.vikriti?.raised
+              ? trf('This suits your raised {dosha}.', {'dosha': _dosha(focus)})
+              : trf('This suits your {dosha}.', {'dosha': _dosha(focus)});
+      return _Msg(_Kind.answer, '$lead$line $why');
     }
     for (final (concern, words) in _topics) {
       if (!RegExp(words).hasMatch(t)) continue;
@@ -231,15 +254,20 @@ class _BuddyScreenState extends State<BuddyScreen> {
       );
       final picks = dailyPlan(input).where((p) => p.item.helps.contains(concern)).take(2).toList();
       if (picks.isEmpty) break;
-      final ideas = picks.map((p) => '${p.item.title.toLowerCase()} (${p.item.why.toLowerCase()})').join(', and ');
-      return _Msg(_Kind.answer, '${lead}For ${concernPhrase(concern)}, two things to start today: $ideas.');
+      final ideas = picks.map((p) => '${_inline(p.item.title)} (${_inline(p.item.why)})').join(tr(', and '));
+      return _Msg(_Kind.answer,
+          lead + trf('For {concern}, two things to start today: {ideas}.', {'concern': _inline(concernPhrase(concern)), 'ideas': ideas}));
     }
     final plan = dailyPlan(base);
     final first = plan.isEmpty ? null : plan.first;
     return _Msg(
       _Kind.answer,
-      '${lead}I can help with food, sleep, stress, yoga and your daily routine.'
-      '${first == null ? '' : ' One suggestion for today: ${first.item.title.toLowerCase()}.'} Tell me what you’d like to improve.',
+      lead +
+          [
+            tr('I can help with food, sleep, stress, yoga and your daily routine.'),
+            if (first != null) trf('One suggestion for today: {item}.', {'item': _inline(first.item.title)}),
+            tr('Tell me what you’d like to improve.'),
+          ].join(' '),
     );
   }
 
@@ -251,7 +279,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       debugPrint('Ayu Buddy call: $e');
     }
     if (!ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please dial $number from your phone now.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(trf('Please dial {number} from your phone now.', {'number': number}))));
     }
   }
 
@@ -331,7 +359,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
     if (!mounted || _voice != _Voice.listening) return;
     setState(() {
       _voice = _Voice.idle;
-      _voiceNote = code.contains('permission') ? 'Allow microphone access for VedaVerse in Settings.' : 'I didn’t catch that. Tap the mic and try again.';
+      _voiceNote = code.contains('permission') ? tr('Allow microphone access for VedaVerse in Settings.') : tr('I didn’t catch that. Tap the mic and try again.');
     });
   }
 
@@ -363,7 +391,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
   String _speakable(_Msg m) => switch (m.kind) {
         _Kind.selfHarm => m.hindi ? _selfHarmHi : _selfHarmEn,
         _Kind.emergency => m.hindi ? _emergencyHi : _emergencyEn,
-        _Kind.vaidya => m.hindi ? _vaidyaHi : _vaidyaEn,
+        _Kind.vaidya => m.held ? (m.hindi ? _heldHi : _heldEn) : (m.hindi ? _vaidyaHi : _vaidyaEn),
         _ => m.text,
       };
 
@@ -377,6 +405,11 @@ class _BuddyScreenState extends State<BuddyScreen> {
       'I’m really sorry you’re feeling this way. You don’t have to face it alone. Please call Tele-MANAS on 14416 now — it’s free, 24x7 and in your language. If you might act on these thoughts, call 108 right away.';
   static const _selfHarmHi =
       'मुझे सच में दुख है कि आप ऐसा महसूस कर रहे हैं। आप अकेले नहीं हैं। कृपया अभी Tele-MANAS को 14416 पर कॉल करें — यह मुफ़्त है, 24 घंटे, आपकी भाषा में। अगर ख़तरा अभी है, तो तुरंत 108 पर कॉल करें।';
+  // When the check on Gemini's answer (not the question) stops it.
+  static const _heldEn =
+      'I held back my answer because it touched on a diagnosis, a dose or a change to your medicines. Only a Vaidya or doctor should guide that. You can ask a Vaidya now, or ask me about food, sleep, yoga or your daily routine.';
+  static const _heldHi =
+      'मैंने अपना जवाब रोक लिया, क्योंकि उसमें बीमारी की पहचान, खुराक या दवाओं में बदलाव की बात आ रही थी। यह सिर्फ़ वैद्य या डॉक्टर बता सकते हैं। आप अभी वैद्य से पूछ सकते हैं, या मुझसे खाने, नींद, योग या दिनचर्या के बारे में पूछें।';
   static const _vaidyaEn =
       'This is about taking a medicine, herb, supplement or another substance that can affect your health. That needs a qualified check, so I won’t advise on it. A Vaidya on VedaVerse can guide you with your history.';
   static const _vaidyaHi =
@@ -403,7 +436,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
       children: [
         SizedBox(height: MediaQuery.of(context).padding.top),
         VvTabHeader(
-          hello: 'Hello, ${s.firstName}',
+          hello: trf('Hello, {name}', {'name': s.firstName}),
           title: Row(
             children: [
               Flexible(child: Text('Ayu Buddy', style: Vv.serif(25, letterSpacing: -0.2), overflow: TextOverflow.ellipsis)),
@@ -432,12 +465,12 @@ class _BuddyScreenState extends State<BuddyScreen> {
                             const Icon(Icons.cloud_off_outlined, size: 16, color: Vv.muted),
                             const SizedBox(width: 6),
                             Expanded(
-                              child: Text('Offline mode · answers from your plan',
+                              child: Text(tr('Offline mode · answers from your plan'),
                                   style: Vv.sans(12, weight: FontWeight.w700, color: Vv.muted)),
                             ),
                             VvTap(
                               onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
-                              child: Text('Add AI key', style: Vv.sans(12, weight: FontWeight.w800, color: Vv.green)),
+                              child: Text(tr('Add AI key'), style: Vv.sans(12, weight: FontWeight.w800, color: Vv.green)),
                             ),
                           ],
                         ),
@@ -454,8 +487,8 @@ class _BuddyScreenState extends State<BuddyScreen> {
                       child: Text.rich(TextSpan(
                         style: Vv.sans(12, color: Vv.ink2, height: 1.4),
                         children: [
-                          TextSpan(text: 'Vaidya-reviewed guardrails. ', style: Vv.sans(12, weight: FontWeight.w800, color: Vv.ink2)),
-                          const TextSpan(text: 'Ayu Buddy explains and guides — it never prescribes or doses.'),
+                          TextSpan(text: tr('Vaidya-reviewed guardrails. '), style: Vv.sans(12, weight: FontWeight.w800, color: Vv.ink2)),
+                          TextSpan(text: tr('Ayu Buddy explains and guides — it never prescribes or doses.')),
                         ],
                       )),
                     ),
@@ -469,7 +502,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text('Chest pain, breathlessness, fainting? Don’t chat — get help.',
+                      child: Text(tr('Chest pain, breathlessness, fainting? Don’t chat — get help.'),
                           style: Vv.sans(12, weight: FontWeight.w700, color: Vv.redInk)),
                     ),
                     const SizedBox(width: 8),
@@ -478,7 +511,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(color: Vv.red, borderRadius: BorderRadius.circular(8)),
-                        child: Text('Call 108', style: Vv.sans(12, weight: FontWeight.w700, color: Vv.surface)),
+                        child: Text(tr('Call 108'), style: Vv.sans(12, weight: FontWeight.w700, color: Vv.surface)),
                       ),
                     ),
                   ],
@@ -514,7 +547,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                       border: Border.all(color: Vv.border),
                       borderRadius: const BorderRadius.only(topLeft: Radius.circular(18), topRight: Radius.circular(18), bottomRight: Radius.circular(18), bottomLeft: Radius.circular(4)),
                     ),
-                    child: Text('Ayu Buddy is thinking…', style: Vv.sans(14, color: Vv.muted)),
+                    child: Text(tr('Ayu Buddy is thinking…'), style: Vv.sans(14, color: Vv.muted)),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -523,7 +556,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  for (final q in ['Foods for my dosha?', 'Better sleep routine'])
+                  for (final q in [tr('Foods for my dosha?'), tr('Better sleep routine')])
                     VvTap(
                       onTap: () => _send(q),
                       child: Container(
@@ -566,7 +599,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   child: Row(
                     children: [
                       IconButton(
-                        tooltip: 'Share a report or photo',
+                        tooltip: tr('Share a report or photo'),
                         onPressed: _thinking ? null : _attach,
                         icon: const Icon(Icons.attach_file_rounded, size: 20, color: Vv.ink2),
                       ),
@@ -580,7 +613,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                           decoration: InputDecoration(
                             isDense: true,
                             border: InputBorder.none,
-                            hintText: _pending.isEmpty ? 'Ask in Hindi or English…' : 'Add a question (optional)…',
+                            hintText: _pending.isEmpty ? tr('Ask in Hindi or English…') : tr('Add a question (optional)…'),
                             hintStyle: Vv.sans(14, color: Vv.disabled),
                           ),
                         ),
@@ -602,7 +635,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                       };
                 return Semantics(
                   button: true,
-                  label: canSend ? 'Send' : (active ? 'Stop' : 'Speak'),
+                  label: canSend ? tr('Send') : (active ? tr('Stop') : tr('Speak')),
                   child: VvTap(
                     onTap: _voice == _Voice.thinking ? null : () => canSend ? _send() : _onMic(),
                     child: Container(
@@ -624,13 +657,13 @@ class _BuddyScreenState extends State<BuddyScreen> {
   /// Status strip above the input while voice is in use: listening (with the
   /// live transcript and sound level), thinking, speaking, or a problem.
   Widget _voiceBar() {
-    final lang = _hindi ? 'हिंदी' : 'English';
+    final lang = _hindi ? 'हिंदी' : (Lang.hi ? 'अंग्रेज़ी' : 'English');
     final problem = _voice == _Voice.unavailable || (_voice == _Voice.idle && _voiceNote != null);
     final label = switch (_voice) {
-      _Voice.listening => 'Listening · $lang',
-      _Voice.thinking => 'Thinking…',
-      _Voice.speaking => 'Speaking · tap the button to stop',
-      _Voice.unavailable => 'Voice isn’t available here. Please type instead.',
+      _Voice.listening => trf('Listening · {lang}', {'lang': lang}),
+      _Voice.thinking => tr('Thinking…'),
+      _Voice.speaking => tr('Speaking · tap the button to stop'),
+      _Voice.unavailable => tr('Voice isn’t available here. Please type instead.'),
       _Voice.idle => _voiceNote ?? '',
     };
     // Sound level is roughly -2..10 dB on Android.
@@ -679,7 +712,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   ),
                 ),
               IconButton(
-                tooltip: 'Close voice',
+                tooltip: tr('Close voice'),
                 visualDensity: VisualDensity.compact,
                 onPressed: _stopVoice,
                 icon: Icon(Icons.close_rounded, size: 18, color: problem ? Vv.redInk : Vv.ink2),
@@ -766,7 +799,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
             constraints: const BoxConstraints(maxWidth: 320),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(color: Vv.surface, border: Border.all(color: Vv.border), borderRadius: leftTail),
-            child: Text(m.text, style: Vv.sans(14, height: 1.55)),
+            child: Text(m.greeting ? _greetingText() : m.text, style: Vv.sans(14, height: 1.55)),
           ),
         );
       case _Kind.vaidya:
@@ -788,7 +821,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   ],
                 ),
                 const SizedBox(height: 10),
-                Text(m.hindi ? _vaidyaHi : _vaidyaEn, style: Vv.sans(14, height: 1.55)),
+                Text(m.held ? (m.hindi ? _heldHi : _heldEn) : (m.hindi ? _vaidyaHi : _vaidyaEn), style: Vv.sans(14, height: 1.55)),
                 if (meds.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Text.rich(TextSpan(
@@ -835,7 +868,7 @@ class _BuddyScreenState extends State<BuddyScreen> {
                   children: [
                     Expanded(child: _callButton(m.hindi ? '108 एम्बुलेंस' : 'Call 108', '108')),
                     const SizedBox(width: 8),
-                    Expanded(child: _callButton('Call 112', '112', primary: false)),
+                    Expanded(child: _callButton(m.hindi ? '112 पर कॉल' : 'Call 112', '112', primary: false)),
                   ],
                 ),
               ],

@@ -5,6 +5,7 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:path_provider/path_provider.dart';
 import 'package:veda_verse/ai/gemini_client.dart';
 import 'package:veda_verse/ai/health_ai.dart';
+import 'package:veda_verse/l10n/lang.dart';
 
 /// Free, offline document reading on the phone: Google ML Kit text
 /// recognition turns a photo into text, and simple rules pull out lab values
@@ -19,10 +20,10 @@ class OfflineReader {
   /// bottom, each row's pieces joined left to right.
   Future<List<String>> rows(Attachment file) async {
     if (!supported) {
-      throw const NotThatDocument('Reading without internet works in the Android and iPhone app.');
+      throw NotThatDocument(tr('Reading without internet works in the Android and iPhone app.'));
     }
     if (!file.isImage) {
-      throw const NotThatDocument('Without internet I can read photos, not PDFs. Please take a clear photo of the page.');
+      throw NotThatDocument(tr('Without internet I can read photos, not PDFs. Please take a clear photo of the page.'));
     }
     final dir = await getTemporaryDirectory();
     final dot = file.name.lastIndexOf('.');
@@ -48,8 +49,8 @@ class OfflineReader {
   Future<LabReport> readLabReport(Attachment file) async {
     final tests = parseLabRows(await rows(file));
     if (tests.length < 2) {
-      throw const NotThatDocument(
-          'I couldn’t find test values in this photo. Take a clear, straight photo of the results table in good light.');
+      throw NotThatDocument(tr(
+          'I couldn’t find test values in this photo. Take a clear, straight photo of the results table in good light.'));
     }
     return LabReport(lab: '', date: '', tests: tests, readAt: DateTime.now(), source: LabSource.phone);
   }
@@ -57,7 +58,7 @@ class OfflineReader {
   Future<List<String>> readPrescription(Attachment file) async {
     final meds = parsePrescriptionRows(await rows(file));
     if (meds.isEmpty) {
-      throw const NotThatDocument('I couldn’t find medicine names in this photo. Please type them, or take a clearer photo.');
+      throw NotThatDocument(tr('I couldn’t find medicine names in this photo. Please type them, or take a clearer photo.'));
     }
     return meds;
   }

@@ -127,5 +127,15 @@ void main() {
       expect(Safety.checkAnswer('Add 1 tsp ghee to warm khichdi and sleep by 10:30 pm.').level, SafetyLevel.ok);
       expect(Safety.checkAnswer('Try 10 minutes of Anulom Vilom before bed.').level, SafetyLevel.ok);
     });
+
+    test('repeating a condition the user entered is not a diagnosis', () {
+      const greeting = 'Hello Ishan! I see you have diabetes, so let us keep meals regular.';
+      expect(Safety.checkAnswer(greeting).level, SafetyLevel.vaidya, reason: 'unknown to us: still held');
+      expect(Safety.checkAnswer(greeting, myConditions: {'Diabetes'}).level, SafetyLevel.ok);
+      expect(Safety.checkAnswer('Since you have hypertension, keep salt low.', myConditions: {'High BP'}).level, SafetyLevel.ok);
+      expect(Safety.checkAnswer('You have diabetes and you have PCOS.', myConditions: {'Diabetes'}).level, SafetyLevel.vaidya,
+          reason: 'PCOS was never reported');
+      expect(Safety.checkAnswer('Take 500 mg of ashwagandha.', myConditions: {'Diabetes'}).level, SafetyLevel.vaidya);
+    });
   });
 }

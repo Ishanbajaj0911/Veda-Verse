@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:veda_verse/ai/ai_key.dart';
 import 'package:veda_verse/ai/gemini_client.dart';
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/theme/vv.dart';
 
 /// Settings card where the user adds up to 3 free Gemini API keys. Key 1 is
@@ -40,11 +41,11 @@ class _AiKeyCardState extends State<AiKeyCard> {
   Future<void> _add() async {
     final key = _field.text.trim();
     if (!AiKey.looksValid(key)) {
-      _say('That doesn’t look like a Gemini API key. Copy the whole key from Google AI Studio.', ok: false);
+      _say(tr('That doesn’t look like a Gemini API key. Copy the whole key from Google AI Studio.'), ok: false);
       return;
     }
     if (AiKey.keys.contains(key)) {
-      _say('This key is already saved.', ok: false);
+      _say(tr('This key is already saved.'), ok: false);
       return;
     }
     setState(() {
@@ -61,13 +62,13 @@ class _AiKeyCardState extends State<AiKeyCard> {
     await AiKey.add(key);
     _field.clear();
     final n = AiKey.keys.length;
-    _say(n == 1 ? 'Connected. Ayu Buddy, report scans and the Vaidya summary now use Gemini.' : 'Backup key $n saved. It takes over if an earlier key hits its limit.',
+    _say(n == 1 ? tr('Connected. Ayu Buddy, report scans and the Vaidya summary now use Gemini.') : trf('Backup key {n} saved. It takes over if an earlier key hits its limit.', {'n': n}),
         ok: true);
   }
 
   Future<void> _remove(int i) async {
     await AiKey.removeAt(i);
-    if (mounted) _say(AiKey.isSet ? 'Key removed.' : 'All keys removed. The app now works offline.', ok: true);
+    if (mounted) _say(AiKey.isSet ? tr('Key removed.') : tr('All keys removed. The app now works offline.'), ok: true);
   }
 
   Future<void> _openStudio() async {
@@ -75,7 +76,7 @@ class _AiKeyCardState extends State<AiKeyCard> {
       await launchUrl(_studio, mode: LaunchMode.externalApplication);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Open aistudio.google.com/apikey in your browser.')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('Open aistudio.google.com/apikey in your browser.'))));
       }
     }
   }
@@ -104,24 +105,24 @@ class _AiKeyCardState extends State<AiKeyCard> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      on ? 'Online AI · Gemini' : 'Offline mode',
+                      on ? tr('Online AI · Gemini') : tr('Offline mode'),
                       style: Vv.sans(14, weight: FontWeight.w800),
                     ),
                   ),
                   if (keys.isNotEmpty)
-                    Text(keys.length == 1 ? '1 key' : '${keys.length} keys · backups ready',
+                    Text(keys.length == 1 ? tr('1 key') : trf('{n} keys · backups ready', {'n': keys.length}),
                         style: Vv.sans(12, weight: FontWeight.w700, color: Vv.muted))
                   else if (builtIn > 0)
-                    Text('Included with the app', style: Vv.sans(12, weight: FontWeight.w700, color: Vv.muted)),
+                    Text(tr('Included with the app'), style: Vv.sans(12, weight: FontWeight.w700, color: Vv.muted)),
                 ],
               ),
               const SizedBox(height: 6),
               Text(
                 keys.isEmpty && builtIn > 0
-                    ? 'Ayu Buddy, lab and prescription scans and the Vaidya summary use Gemini, included with VedaVerse. Nothing to set up. You can also add your own key below, used first.'
+                    ? tr('Ayu Buddy, lab and prescription scans and the Vaidya summary use Gemini, included with VedaVerse. Nothing to set up. You can also add your own key below, used first.')
                     : on
-                    ? 'Ayu Buddy, lab and prescription scans and the Vaidya summary use Gemini. Keys stay on this phone. If key 1 hits its free limit, the next key takes over.'
-                    : 'Everything works offline: your dosha, plan, safety cards, and scanning report photos on the phone. Add a free Gemini key for smarter chat answers and PDF reading. You can add up to ${AiKey.maxKeys} keys as backups.',
+                    ? tr('Ayu Buddy, lab and prescription scans and the Vaidya summary use Gemini. Keys stay on this phone. If key 1 hits its free limit, the next key takes over.')
+                    : trf('Everything works offline: your dosha, plan, safety cards, and scanning report photos on the phone. Add a free Gemini key for smarter chat answers and PDF reading. You can add up to {n} keys as backups.', {'n': AiKey.maxKeys}),
                 style: Vv.sans(12.5, color: Vv.ink2, height: 1.45),
               ),
               if (on) ...[
@@ -133,11 +134,11 @@ class _AiKeyCardState extends State<AiKeyCard> {
                     decoration: BoxDecoration(color: Vv.bg, borderRadius: BorderRadius.circular(10)),
                     child: Row(
                       children: [
-                        Text(i == 0 ? 'Key 1 · main' : 'Key ${i + 1} · backup', style: Vv.sans(12.5, weight: FontWeight.w800)),
+                        Text(i == 0 ? tr('Key 1 · main') : trf('Key {n} · backup', {'n': i + 1}), style: Vv.sans(12.5, weight: FontWeight.w800)),
                         const SizedBox(width: 10),
                         Expanded(child: Text(AiKey.mask(k), style: Vv.sans(12.5, color: Vv.muted))),
                         IconButton(
-                          tooltip: 'Remove key ${i + 1}',
+                          tooltip: trf('Remove key {n}', {'n': i + 1}),
                           visualDensity: VisualDensity.compact,
                           onPressed: () => _remove(i),
                           icon: const Icon(Icons.close_rounded, size: 18, color: Vv.red),
@@ -169,13 +170,13 @@ class _AiKeyCardState extends State<AiKeyCard> {
                           decoration: InputDecoration(
                             isDense: true,
                             border: InputBorder.none,
-                            hintText: on ? 'Paste backup key ${keys.length + 1}' : 'Paste your Gemini API key',
+                            hintText: on ? trf('Paste backup key {n}', {'n': keys.length + 1}) : tr('Paste your Gemini API key'),
                             hintStyle: Vv.sans(14, color: Vv.disabled),
                           ),
                         ),
                       ),
                       IconButton(
-                        tooltip: _hidden ? 'Show key' : 'Hide key',
+                        tooltip: _hidden ? tr('Show key') : tr('Hide key'),
                         onPressed: () => setState(() => _hidden = !_hidden),
                         icon: Icon(_hidden ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20, color: Vv.muted),
                       ),
@@ -187,7 +188,7 @@ class _AiKeyCardState extends State<AiKeyCard> {
                   children: [
                     Expanded(
                       child: VvButton(
-                        label: _busy ? 'Checking…' : (on ? 'Test and add backup' : 'Save and test'),
+                        label: _busy ? tr('Checking…') : (on ? tr('Test and add backup') : tr('Save and test')),
                         height: 46,
                         fontSize: 14,
                         onTap: _busy ? null : _add,
@@ -196,7 +197,7 @@ class _AiKeyCardState extends State<AiKeyCard> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: VvButton(
-                        label: 'Get a free key',
+                        label: tr('Get a free key'),
                         height: 46,
                         fontSize: 14,
                         bg: Vv.surface,

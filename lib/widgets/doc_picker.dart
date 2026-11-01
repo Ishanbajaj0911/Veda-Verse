@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:veda_verse/ai/gemini_client.dart';
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/theme/vv.dart';
 
 /// Lets the user take a photo, choose a photo, or choose a PDF / text file,
@@ -23,18 +24,18 @@ Future<Attachment?> pickDocument(BuildContext context, {String what = 'report'})
           const SizedBox(height: 8),
           ListTile(
             leading: const Icon(Icons.photo_camera_outlined, color: Vv.green),
-            title: Text('Take a photo of the $what', style: Vv.sans(15, weight: FontWeight.w700)),
+            title: Text(_photoTitle(what), style: Vv.sans(15, weight: FontWeight.w700)),
             onTap: () => Navigator.pop(ctx, 'camera'),
           ),
           ListTile(
             leading: const Icon(Icons.photo_library_outlined, color: Vv.green),
-            title: Text('Choose a photo', style: Vv.sans(15, weight: FontWeight.w700)),
+            title: Text(tr('Choose a photo'), style: Vv.sans(15, weight: FontWeight.w700)),
             onTap: () => Navigator.pop(ctx, 'gallery'),
           ),
           ListTile(
             leading: const Icon(Icons.description_outlined, color: Vv.green),
-            title: Text('Choose a PDF or file', style: Vv.sans(15, weight: FontWeight.w700)),
-            subtitle: Text('PDF, photo or text file, up to 12 MB', style: Vv.sans(12, color: Vv.muted)),
+            title: Text(tr('Choose a PDF or file'), style: Vv.sans(15, weight: FontWeight.w700)),
+            subtitle: Text(tr('PDF, photo or text file, up to 12 MB'), style: Vv.sans(12, color: Vv.muted)),
             onTap: () => Navigator.pop(ctx, 'file'),
           ),
           const SizedBox(height: 8),
@@ -50,12 +51,12 @@ Future<Attachment?> pickDocument(BuildContext context, {String what = 'report'})
       if (f == null) return null;
       final mime = Attachment.mimeFor(f.name);
       if (mime == null) {
-        toast('I can read PDFs, photos and text files. Please share it in one of those.');
+        toast(tr('I can read PDFs, photos and text files. Please share it in one of those.'));
         return null;
       }
       final size = await f.length();
       if (size != null && size > Attachment.maxBytes) {
-        toast('That file is too large. Please share one under 12 MB.');
+        toast(tr('That file is too large. Please share one under 12 MB.'));
         return null;
       }
       a = Attachment(f.name, mime, await f.readAsBytes());
@@ -68,13 +69,20 @@ Future<Attachment?> pickDocument(BuildContext context, {String what = 'report'})
       a = Attachment(x.name, Attachment.mimeFor(x.name) ?? 'image/jpeg', await x.readAsBytes());
     }
     if (a.bytes.length > Attachment.maxBytes) {
-      toast('That file is too large. Please share one under 12 MB.');
+      toast(tr('That file is too large. Please share one under 12 MB.'));
       return null;
     }
     return a;
   } catch (e) {
     debugPrint('pickDocument: $e');
-    toast('Couldn’t open that file. Please try again.');
+    toast(tr('Couldn’t open that file. Please try again.'));
     return null;
   }
 }
+
+String _photoTitle(String what) => switch (what) {
+      'report' => tr('Take a photo of the report'),
+      'lab report' => tr('Take a photo of the lab report'),
+      'prescription' => tr('Take a photo of the prescription'),
+      _ => Lang.hi ? tr('Take a photo') : 'Take a photo of the $what',
+    };

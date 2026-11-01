@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:veda_verse/l10n/lang.dart';
 
 /// VedaVerse design tokens, ported from the "VedaVerse App UI" design file.
 class Vv {
@@ -166,10 +167,10 @@ String rituFor(DateTime d) {
     11: 'Hemanta Ritu (early winter)',
     12: 'Hemanta Ritu (early winter)',
   };
-  return map[d.month]!;
+  return tr(map[d.month]!);
 }
 
-String weekdayName(DateTime d) => const [
+String weekdayName(DateTime d) => tr(const [
       'Monday',
       'Tuesday',
       'Wednesday',
@@ -177,7 +178,7 @@ String weekdayName(DateTime d) => const [
       'Friday',
       'Saturday',
       'Sunday'
-    ][d.weekday - 1];
+    ][d.weekday - 1]);
 
 // ---------------------------------------------------------------------------
 // Shared widgets

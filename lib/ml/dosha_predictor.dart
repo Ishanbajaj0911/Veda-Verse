@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:veda_verse/l10n/lang.dart';
 
 /// Result of a dosha prediction.
 class DoshaPrediction {
@@ -340,30 +341,31 @@ class DoshaPredictor {
   }
 
   /// One plain sentence explaining [p] from the user's [answers], e.g.
-  /// "Mostly from your slim build, dry skin and light sleep."
+  /// "Mostly from your slim build, dry skin and light sleep." In Hindi when
+  /// the app is in Hindi (trait phrases are looked up in lib/l10n/hi_quiz.dart).
   String explain(List<int> answers, DoshaPrediction p) {
     String phrases(String dosha, int n) {
       final qs = topReasons(answers, dosha, count: n);
       final ts = [
         for (final q in qs)
-          if (questions.length > q && (questions[q].traits?.length ?? 0) > answers[q]) questions[q].traits![answers[q]],
+          if (questions.length > q && (questions[q].traits?.length ?? 0) > answers[q]) tr(questions[q].traits![answers[q]]),
       ];
       if (ts.isEmpty) return '';
       if (ts.length == 1) return ts.first;
-      return '${ts.sublist(0, ts.length - 1).join(', ')} and ${ts.last}';
+      return '${ts.sublist(0, ts.length - 1).join(', ')} ${tr('and')} ${ts.last}';
     }
 
     if (p.type == 'Tridoshic') {
-      return 'Your answers are spread evenly across Vata, Pitta and Kapha.';
+      return tr('Your answers are spread evenly across Vata, Pitta and Kapha.');
     }
     if (p.type.contains('-')) {
       final a = p.ranked[0].key, b = p.ranked[1].key;
       final pa = phrases(a, 2), pb = phrases(b, 2);
       if (pa.isEmpty || pb.isEmpty) return '';
-      return '$a mostly from your $pa; $b from your $pb.';
+      return trf('{a} mostly from your {pa}; {b} from your {pb}.', {'a': tr(a), 'pa': pa, 'b': tr(b), 'pb': pb});
     }
     final top = phrases(p.dominant, 3);
-    return top.isEmpty ? '' : 'Mostly from your $top.';
+    return top.isEmpty ? '' : trf('Mostly from your {top}.', {'top': top});
   }
 
   /// Convenience for the quiz screen, which stores answers as "A"/"B"/"C".

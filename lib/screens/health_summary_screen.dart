@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:veda_verse/ai/health_ai.dart';
 import 'package:veda_verse/ai/safety.dart';
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/ml/dosha_predictor.dart';
 import 'package:veda_verse/screens/scan_screen.dart';
 import 'package:veda_verse/state/app_state.dart';
@@ -66,8 +67,8 @@ class _HealthSummaryScreenState extends State<HealthSummaryScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SerifTitle('Health ', 'summary', size: 25),
-                          Text('What your Vaidya sees before the consult', style: Vv.sans(12, color: Vv.muted)),
+                          SerifTitle(tr('Health '), tr('summary'), size: 25),
+                          Text(tr('What your Vaidya sees before the consult'), style: Vv.sans(12, color: Vv.muted)),
                         ],
                       ),
                     ),
@@ -82,27 +83,27 @@ class _HealthSummaryScreenState extends State<HealthSummaryScreen> {
                         children: [
                           _overviewCard(),
                           const SizedBox(height: 14),
-                          _section('Story', [
-                            ('Concerns', c.concerns.isEmpty ? 'None noted' : c.concerns.join(', ')),
-                            ('Since', c.since),
+                          _section(tr('Story'), [
+                            (tr('Concerns'), c.concerns.isEmpty ? tr('None noted') : c.concerns.map(tr).join(', ')),
+                            (tr('Since'), tr(c.since)),
                           ]),
-                          _section('Health and safety', [
-                            ('Conditions', c.conditions.isEmpty ? 'None noted' : c.conditions.join(', ')),
-                            if (c.pregnancy.isNotEmpty) ('Pregnancy', c.pregnancy),
-                            ('Medicines', c.medicines.isEmpty ? 'None' : c.medicines.join(', ')),
-                            ('Allergies', c.allergies.isEmpty ? 'None' : c.allergies.join(', ')),
+                          _section(tr('Health and safety'), [
+                            (tr('Conditions'), c.conditions.isEmpty ? tr('None noted') : c.conditions.map(tr).join(', ')),
+                            if (c.pregnancy.isNotEmpty) (tr('Pregnancy'), tr(c.pregnancy)),
+                            (tr('Medicines'), c.medicines.isEmpty ? tr('None') : c.medicines.join(', ')),
+                            (tr('Allergies'), c.allergies.isEmpty ? tr('None') : c.allergies.join(', ')),
                           ]),
-                          _section('Ayurvedic profile', [
-                            ('Prakriti', c.prakriti),
-                            ('Vikriti', c.vikriti),
+                          _section(tr('Ayurvedic profile'), [
+                            (tr('Prakriti'), c.prakriti),
+                            (tr('Vikriti'), c.vikriti),
                             for (final (l, a) in c.agniMalaNidra) (l, a),
                           ]),
                           _labsSection(c.labs),
                           if (c.flags.isNotEmpty) _flagsSection(c.flags),
                           const SizedBox(height: 4),
                           VvNote(
-                            text: 'Shared only with the Vaidya you book, for that consult. You can turn sharing off on the booking '
-                                'screen. Self-reported and AI-assisted: not a diagnosis.',
+                            text: tr('Shared only with the Vaidya you book, for that consult. You can turn sharing off on the booking '
+                                'screen. Self-reported and AI-assisted: not a diagnosis.'),
                           ),
                         ],
                       ),
@@ -125,7 +126,7 @@ class _HealthSummaryScreenState extends State<HealthSummaryScreen> {
                 const Icon(Icons.auto_awesome_outlined, size: 16, color: Vv.goldLight),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text(_ai.configured ? 'OVERVIEW · WRITTEN BY GEMINI FROM YOUR DATA' : 'OVERVIEW',
+                  child: Text(_ai.configured ? tr('OVERVIEW · WRITTEN BY GEMINI FROM YOUR DATA') : tr('OVERVIEW'),
                       style: Vv.kicker(Vv.goldLight, spacing: 0.8, size: 11)),
                 ),
                 if (!_loading)
@@ -141,7 +142,7 @@ class _HealthSummaryScreenState extends State<HealthSummaryScreen> {
                 ? Row(children: [
                     const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Vv.goldLight)),
                     const SizedBox(width: 10),
-                    Text('Writing the overview…', style: Vv.sans(14, color: Vv.onDeepMuted2)),
+                    Text(tr('Writing the overview…'), style: Vv.sans(14, color: Vv.onDeepMuted2)),
                   ])
                 : Text(_overview ?? '', style: Vv.sans(14, color: Vv.bg, height: 1.55)),
           ],
@@ -182,31 +183,37 @@ class _HealthSummaryScreenState extends State<HealthSummaryScreen> {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Expanded(child: Text('No lab report shared yet.', style: Vv.sans(13.5, color: Vv.ink2))),
+              Expanded(child: Text(tr('No lab report shared yet.'), style: Vv.sans(13.5, color: Vv.ink2))),
               TextButton(
                 onPressed: () async {
                   await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScanScreen()));
                   if (mounted) _build();
                 },
-                child: Text('Scan a report', style: Vv.sans(13, weight: FontWeight.w800, color: Vv.green)),
+                child: Text(tr('Scan a report'), style: Vv.sans(13, weight: FontWeight.w800, color: Vv.green)),
               ),
             ],
           ),
         ),
       );
     }
-    return _section('Lab report${r.lab.isEmpty ? '' : ' · ${r.lab}'}', [
-      ('Summary', r.summary),
-      for (final t in r.flagged) (t.name, '${t.valueWithUnit} (${t.flag.toLowerCase()}; range ${t.range})'),
+    return _section('${tr('Lab report')}${r.lab.isEmpty ? '' : ' · ${r.lab}'}', [
+      (tr('Summary'), r.summary),
+      for (final t in r.flagged)
+        (r.nameOf(t), trf('{value} ({flag}; range {range})', {'value': t.valueWithUnit, 'flag': t.flagWord, 'range': t.range})),
     ]);
   }
 
   Widget _flagsSection(List<BuddyFlag> flags) {
     final vaidya = flags.where((f) => f.level == SafetyLevel.vaidya).toList();
     final alerts = flags.where((f) => f.level != SafetyLevel.vaidya).length;
-    return _section('From Ayu Buddy', [
-      for (final f in vaidya.reversed.take(5)) ('Asked', '“${f.question}”'),
-      if (alerts > 0) ('Safety', 'Emergency guidance was shown $alerts time${alerts == 1 ? '' : 's'}'),
+    return _section(tr('From Ayu Buddy'), [
+      for (final f in vaidya.reversed.take(5)) (tr('Asked'), '“${f.question}”'),
+      if (alerts > 0)
+        (
+            tr('Safety'),
+            alerts == 1
+                ? tr('Emergency guidance was shown 1 time')
+                : trf('Emergency guidance was shown {n} times', {'n': alerts})),
     ]);
   }
 }

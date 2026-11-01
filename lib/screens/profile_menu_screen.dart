@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:veda_verse/l10n/lang.dart';
+import 'package:veda_verse/screens/help_screen.dart';
 import 'package:veda_verse/screens/intake_screen.dart';
 import 'package:veda_verse/screens/plans_screen.dart';
 import 'package:veda_verse/screens/scan_screen.dart';
 import 'package:veda_verse/screens/settings_screen.dart';
 import 'package:veda_verse/screens/welcome_screen.dart';
+import 'package:veda_verse/state/accounts.dart';
 import 'package:veda_verse/state/app_state.dart';
 import 'package:veda_verse/theme/vv.dart';
 
@@ -11,16 +14,22 @@ import 'package:veda_verse/theme/vv.dart';
 class ProfileMenuScreen extends StatelessWidget {
   const ProfileMenuScreen({super.key});
 
+  Future<void> _logOut(BuildContext context) async {
+    final nav = Navigator.of(context);
+    await Accounts.logOut();
+    nav.pushAndRemoveUntil(MaterialPageRoute(builder: (_) => const WelcomeScreen()), (_) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = AppState.instance;
     final menu = [
-      ('My Profile', 'Personal details & health intake', Icons.person_outline_rounded, () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const IntakeScreen(editing: true)))),
-      ('My Plans', 'Subscription & billing', Icons.credit_card_outlined, () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PlansScreen()))),
-      ('Health records', 'Lab reports, prescriptions, consult notes', Icons.description_outlined, () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScanScreen()))),
-      ('Language & voice', 'English · हिंदी', Icons.translate_rounded, () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen()))),
-      ('Settings', 'Notifications, privacy, data', Icons.settings_outlined, () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen()))),
-      ('Help & safety', 'Emergency numbers, support', Icons.health_and_safety_outlined, () {}),
+      (tr('My Profile'), tr('Personal details & health intake'), Icons.person_outline_rounded, () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const IntakeScreen(editing: true)))),
+      (tr('My Plans'), tr('Subscription & billing'), Icons.credit_card_outlined, () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PlansScreen()))),
+      (tr('Health records'), tr('Lab reports, prescriptions, consult notes'), Icons.description_outlined, () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScanScreen()))),
+      (tr('Language & voice'), 'English · हिंदी', Icons.translate_rounded, () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen()))),
+      (tr('Settings'), tr('Notifications, privacy, data'), Icons.settings_outlined, () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen()))),
+      (tr('Help & safety'), tr('Emergency numbers, support'), Icons.health_and_safety_outlined, () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpScreen()))),
     ];
     return Scaffold(
       body: VvFrame(
@@ -35,7 +44,7 @@ class ProfileMenuScreen extends StatelessWidget {
                     children: [
                       const VvBackButton(),
                       const SizedBox(width: 12),
-                      Text('Account', style: Vv.serif(20, weight: FontWeight.w700)),
+                      Text(tr('Account'), style: Vv.serif(20, weight: FontWeight.w700)),
                     ],
                   ),
                 ),
@@ -58,12 +67,24 @@ class ProfileMenuScreen extends StatelessWidget {
                                     children: [
                                       Text(s.name, style: Vv.serif(19, weight: FontWeight.w700)),
                                       const SizedBox(height: 4),
-                                      Text('${s.age} · ${s.gender} · ${s.firstName.toLowerCase()}@example.com', style: Vv.sans(13, color: Vv.muted)),
+                                      Text(
+                                        [
+                                          if (s.age > 0) trf('{age} yrs', {'age': s.age}),
+                                          if (s.gender.isNotEmpty) tr(s.gender),
+                                          if (s.email.isNotEmpty) s.email,
+                                        ].join(' · '),
+                                        style: Vv.sans(13, color: Vv.muted),
+                                      ),
+                                      if (s.accountId.isNotEmpty) ...[
+                                        const SizedBox(height: 2),
+                                        Text(trf('Account ID: {id}', {'id': s.accountId}),
+                                            style: Vv.sans(12, weight: FontWeight.w700, color: Vv.ink2)),
+                                      ],
                                       const SizedBox(height: 4),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                         decoration: BoxDecoration(color: Vv.bluePale2, borderRadius: BorderRadius.circular(999)),
-                                        child: Text(s.hasPrakriti ? s.prakritiLabel : 'Prakriti not checked yet',
+                                        child: Text(s.hasPrakriti ? s.prakritiLabel : tr('Prakriti not checked yet'),
                                             style: Vv.sans(12, weight: FontWeight.w800, color: Vv.blueDark)),
                                       ),
                                     ],
@@ -74,11 +95,11 @@ class ProfileMenuScreen extends StatelessWidget {
                             const SizedBox(height: 14),
                             Row(
                               children: [
-                                _stat('${s.streak}', 'day streak'),
+                                _stat('${s.streak}', tr('day streak')),
                                 const SizedBox(width: 8),
-                                _stat('2', 'reports'),
+                                _stat('${s.labReport == null ? 0 : 1}', tr('reports')),
                                 const SizedBox(width: 8),
-                                _stat('1', 'consults'),
+                                _stat('${s.buddyFlags.length}', tr('for Vaidya')),
                               ],
                             ),
                           ],
@@ -94,9 +115,10 @@ class ProfileMenuScreen extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('CURRENT PLAN · FREE', style: Vv.sans(12, weight: FontWeight.w700, color: Vv.onDeepMuted, letterSpacing: 1)),
+                                  Text(tr('CURRENT PLAN · FREE'),
+                                      style: Vv.sans(12, weight: FontWeight.w700, color: Vv.onDeepMuted, letterSpacing: Lang.hi ? 0.2 : 1)),
                                   const SizedBox(height: 4),
-                                  Text('Unlock unlimited report scans & priority Vaidya slots',
+                                  Text(tr('Unlock unlimited report scans & priority Vaidya slots'),
                                       style: Vv.sans(15, weight: FontWeight.w700, color: Vv.bg, height: 1.35)),
                                 ],
                               ),
@@ -109,7 +131,7 @@ class ProfileMenuScreen extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                 alignment: Alignment.center,
                                 decoration: BoxDecoration(color: Vv.gold, borderRadius: BorderRadius.circular(12)),
-                                child: Text('Upgrade', style: Vv.sans(14, weight: FontWeight.w800, color: Vv.deep)),
+                                child: Text(tr('Upgrade'), style: Vv.sans(14, weight: FontWeight.w800, color: Vv.deep)),
                               ),
                             ),
                           ],
@@ -159,17 +181,14 @@ class ProfileMenuScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 14),
                       VvButton(
-                        label: 'Log out',
+                        label: tr('Log out'),
                         height: 52,
                         fontSize: 15,
                         bg: Vv.surface,
                         fg: Vv.red,
                         borderColor: Vv.redBorder,
                         leading: Icons.logout_rounded,
-                        onTap: () => Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-                          (_) => false,
-                        ),
+                        onTap: () => _logOut(context),
                       ),
                     ],
                   ),

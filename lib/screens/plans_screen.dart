@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/theme/vv.dart';
 
 class PlansScreen extends StatefulWidget {
@@ -27,7 +28,7 @@ class _PlansScreenState extends State<PlansScreen> {
                   children: [
                     const VvBackButton(),
                     const SizedBox(width: 12),
-                    const SerifTitle('My ', 'plans', size: 25),
+                    SerifTitle(tr('My '), tr('plans'), size: 25),
                   ],
                 ),
               ),
@@ -35,7 +36,7 @@ class _PlansScreenState extends State<PlansScreen> {
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
                   children: [
-                    VvSegments(labels: const ['Monthly', 'Yearly · save 2 months'], index: _tab, onChanged: (i) => setState(() => _tab = i)),
+                    VvSegments(labels: [tr('Monthly'), tr('Yearly · save 2 months')], index: _tab, onChanged: (i) => setState(() => _tab = i)),
                     const SizedBox(height: 14),
                     VvCard(
                       padding: const EdgeInsets.all(18),
@@ -48,11 +49,11 @@ class _PlansScreenState extends State<PlansScreen> {
                             crossAxisAlignment: CrossAxisAlignment.baseline,
                             textBaseline: TextBaseline.alphabetic,
                             children: [
-                              Text('Free', style: Vv.serif(26)),
+                              Text(tr('Free'), style: Vv.serif(26)),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(color: Vv.mint, borderRadius: BorderRadius.circular(999)),
-                                child: Text('Current plan', style: Vv.sans(12, weight: FontWeight.w800, color: Vv.green)),
+                                child: Text(tr('Current plan'), style: Vv.sans(12, weight: FontWeight.w800, color: Vv.green)),
                               ),
                             ],
                           ),
@@ -77,7 +78,7 @@ class _PlansScreenState extends State<PlansScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(color: Vv.goldLight, borderRadius: BorderRadius.circular(999)),
-                                  child: Text('MOST LOVED', style: Vv.kicker(Vv.deep)),
+                                  child: Text(tr('MOST LOVED'), style: Vv.kicker(Vv.deep)),
                                 ),
                                 const SizedBox(height: 12),
                                 Row(
@@ -85,21 +86,21 @@ class _PlansScreenState extends State<PlansScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.baseline,
                                   textBaseline: TextBaseline.alphabetic,
                                   children: [
-                                    Flexible(child: Text('Premium', style: Vv.serif(30, color: Vv.bg), overflow: TextOverflow.ellipsis)),
-                                    Text(_tab == 1 ? '₹4,990/yr' : '₹499/mo', style: Vv.serif(26, color: Vv.goldLight)),
+                                    Flexible(child: Text(tr('Premium'), style: Vv.serif(30, color: Vv.bg), overflow: TextOverflow.ellipsis)),
+                                    Text(_tab == 1 ? tr('₹4,990/yr') : tr('₹499/mo'), style: Vv.serif(26, color: Vv.goldLight)),
                                   ],
                                 ),
                                 const SizedBox(height: 12),
                                 for (final f in _premium) _line(f, Vv.leaf, color: Vv.bg),
                                 const SizedBox(height: 6),
                                 VvButton(
-                                  label: 'Upgrade with UPI / Google Pay',
+                                  label: tr('Upgrade with UPI / Google Pay'),
                                   height: 52,
                                   fontSize: 15,
                                   weight: FontWeight.w800,
                                   bg: Vv.gold,
                                   fg: Vv.deep,
-                                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Google Pay checkout coming soon'))),
+                                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('Google Pay checkout coming soon')))),
                                 ),
                               ],
                             ),
@@ -108,7 +109,7 @@ class _PlansScreenState extends State<PlansScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    Text('Cancel anytime. Vaidya consult fees are paid separately per booking.',
+                    Text(tr('Cancel anytime. Vaidya consult fees are paid separately per booking.'),
                         textAlign: TextAlign.center, style: Vv.sans(12, color: Vv.muted, height: 1.5)),
                   ],
                 ),
@@ -127,7 +128,7 @@ class _PlansScreenState extends State<PlansScreen> {
           children: [
             Padding(padding: const EdgeInsets.only(top: 1), child: Icon(Icons.check_rounded, size: 18, color: check)),
             const SizedBox(width: 10),
-            Expanded(child: Text(t, style: Vv.sans(14, color: color, height: 1.4))),
+            Expanded(child: Text(tr(t), style: Vv.sans(14, color: color, height: 1.4))),
           ],
         ),
       );

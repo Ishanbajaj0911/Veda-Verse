@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:veda_verse/engine/plan_engine.dart';
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/screens/prakriti_quiz_screen.dart';
 import 'package:veda_verse/screens/profile_menu_screen.dart';
 import 'package:veda_verse/screens/program_screen.dart';
@@ -15,9 +16,12 @@ class DoshaScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = AppState.instance;
     final now = DateTime.now();
+    final program = ProgramProgress.instance..ensureLoaded();
     return ListenableBuilder(
-      listenable: s,
+      listenable: Listenable.merge([s, program]),
       builder: (context, _) {
+        program.ensureLoaded(); // reloads after an account switch
+        void openQuiz() => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PrakritiQuizScreen()));
         final mix = s.mix;
         final rows = [
           ('Vata', 'air + space', mix['Vata']!, Vv.vataBar),
@@ -34,9 +38,10 @@ class DoshaScreen extends StatelessWidget {
             SizedBox(height: MediaQuery.of(context).padding.top),
             VvTabHeader(
               hello: '${weekdayName(now)} · ${rituFor(now)}',
-              title: SerifTitle('Hello, ', s.firstName, size: 27, letterSpacing: -0.2),
+              title: SerifTitle(tr('Hello, '), s.firstName.isEmpty ? tr('friend') : s.firstName, size: 27, letterSpacing: -0.2),
               initial: s.initial,
-              extra: Container(
+              // No "0 days" badge for someone who hasn't started yet.
+              extra: s.streak <= 0 ? null : Container(
                 height: 36,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(color: Vv.goldPale, borderRadius: BorderRadius.circular(999)),
@@ -44,7 +49,7 @@ class DoshaScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.local_fire_department_outlined, size: 16, color: Vv.brown),
                     const SizedBox(width: 5),
-                    Text('${s.streak} days', style: Vv.sans(13, weight: FontWeight.w800, color: Vv.brown)),
+                    Text(trf('{n} days', {'n': s.streak}), style: Vv.sans(13, weight: FontWeight.w800, color: Vv.brown)),
                   ],
                 ),
               ),
@@ -54,7 +59,10 @@ class DoshaScreen extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
                 children: [
-                  ClipRRect(
+                  // Before the quiz the whole card opens it.
+                  VvTap(
+                    onTap: s.hasPrakriti ? null : openQuiz,
+                    child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
                     child: Container(
                       color: Vv.deep,
@@ -73,11 +81,11 @@ class DoshaScreen extends StatelessWidget {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text('YOUR PRAKRITI · NATURAL BODY TYPE',
+                                        Text(tr('YOUR PRAKRITI · NATURAL BODY TYPE'),
                                             style: Vv.sans(12, weight: FontWeight.w700, color: Vv.onDeepMuted, letterSpacing: 1)),
                                         const SizedBox(height: 4),
                                         !s.hasPrakriti
-                                            ? SerifTitle('Not ', 'checked yet', size: 32, color: Vv.bg, letterSpacing: -0.3)
+                                            ? SerifTitle(tr('Not '), tr('checked yet'), size: 32, color: Vv.bg, letterSpacing: -0.3)
                                             : parts.length > 1
                                             ? SerifTitle('${parts.first} ', parts.sublist(1).join(' '), size: 32, color: Vv.bg, letterSpacing: -0.3)
                                             : Text(label, style: Vv.serif(32, color: Vv.bg, letterSpacing: -0.3)),
@@ -87,7 +95,7 @@ class DoshaScreen extends StatelessWidget {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                     decoration: BoxDecoration(color: const Color(0x1FFFFFFF), borderRadius: BorderRadius.circular(999)),
-                                    child: Text(s.prediction == null ? 'Take the quiz' : 'Updated today',
+                                    child: Text(s.prediction == null ? tr('Take the quiz') : tr('From your quiz'),
                                         style: Vv.sans(12, weight: FontWeight.w700, color: Vv.bg)),
                                   ),
                                 ],
@@ -98,8 +106,8 @@ class DoshaScreen extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text.rich(TextSpan(children: [
-                                      TextSpan(text: r.$1, style: Vv.sans(14, weight: FontWeight.w700, color: Vv.bg)),
-                                      TextSpan(text: ' · ${r.$2}', style: Vv.sans(14, color: Vv.onDeepMuted)),
+                                      TextSpan(text: tr(r.$1), style: Vv.sans(14, weight: FontWeight.w700, color: Vv.bg)),
+                                      TextSpan(text: ' · ${tr(r.$2)}', style: Vv.sans(14, color: Vv.onDeepMuted)),
                                     ])),
                                     Text('${r.$3}%', style: Vv.sans(14, weight: FontWeight.w700, color: Vv.bg)),
                                   ],
@@ -121,15 +129,15 @@ class DoshaScreen extends StatelessWidget {
                                               TextSpan(
                                                 style: Vv.sans(13, color: Vv.bg, height: 1.45),
                                                 children: [
-                                                  TextSpan(text: 'Right now (Vikriti): ', style: Vv.sans(13, weight: FontWeight.w800, color: Vv.bg)),
+                                                  TextSpan(text: tr('Right now (Vikriti): '), style: Vv.sans(13, weight: FontWeight.w800, color: Vv.bg)),
                                                   TextSpan(
                                                       text: s.vikriti?.summary ??
-                                                          'retake the quiz to see how you feel right now.'),
+                                                          tr('retake the quiz to see how you feel right now.')),
                                                 ],
                                               ),
                                             )
                                           : Text(
-                                              'Take the Prakriti quiz to see your Vata, Pitta and Kapha mix. It takes about 4 minutes.',
+                                              tr('Take the Prakriti quiz to see your Vata, Pitta and Kapha mix. It takes about 4 minutes.'),
                                               style: Vv.sans(13, color: Vv.bg, height: 1.45),
                                             ),
                                     ),
@@ -142,6 +150,7 @@ class DoshaScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -149,8 +158,8 @@ class DoshaScreen extends StatelessWidget {
                         child: _action(
                           context,
                           Icons.document_scanner_outlined,
-                          'Scan lab report',
-                          'Gemini reads it for you',
+                          tr('Scan lab report'),
+                          tr('Gemini reads it for you'),
                           () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScanScreen())),
                         ),
                       ),
@@ -159,13 +168,15 @@ class DoshaScreen extends StatelessWidget {
                         child: _action(
                           context,
                           Icons.refresh_rounded,
-                          s.prediction == null ? 'Take Prakriti quiz' : 'Retake Prakriti quiz',
-                          '24 questions · 4 min',
-                          () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PrakritiQuizScreen())),
+                          s.prediction == null ? tr('Take Prakriti quiz') : tr('Retake Prakriti quiz'),
+                          tr('24 questions · 4 min'),
+                          openQuiz,
                         ),
                       ),
                     ],
                   ),
+                  // A women's health program: not shown to men.
+                  if (s.gender != 'Male') ...[
                   const SizedBox(height: 16),
                   VvTap(
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProgramScreen())),
@@ -185,11 +196,24 @@ class DoshaScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('LIFESTYLE PROGRAM', style: Vv.kicker(Vv.plumInk, spacing: 0.8)),
+                                Text(tr('LIFESTYLE PROGRAM'), style: Vv.kicker(Vv.plumInk, spacing: 0.8)),
                                 const SizedBox(height: 2),
-                                const SerifTitle('PCOS / PCOD · ', 'Week 3 of 12', size: 19),
+                                SerifTitle(
+                                  tr('PCOS / PCOD · '),
+                                  !program.started
+                                      ? tr('12 weeks')
+                                      : program.finished
+                                          ? tr('Complete')
+                                          : trf('Week {w} of 12', {'w': program.week}),
+                                  size: 19,
+                                ),
                                 const SizedBox(height: 2),
-                                Text('Sign check, cycle log and this week’s habits', style: Vv.sans(12, color: Vv.muted)),
+                                Text(
+                                  program.started
+                                      ? tr('Sign check, cycle log and this week’s habits')
+                                      : tr('Small daily habits, a cycle log and a sign check. Start any day.'),
+                                  style: Vv.sans(12, color: Vv.muted),
+                                ),
                               ],
                             ),
                           ),
@@ -198,6 +222,7 @@ class DoshaScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  ],
                   const SizedBox(height: 16),
                   VvCard(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -210,18 +235,23 @@ class DoshaScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text.rich(TextSpan(children: [
-                              TextSpan(text: 'Today’s Dinacharya', style: Vv.serif(17, weight: FontWeight.w700)),
-                              TextSpan(text: ' · daily routine', style: Vv.sans(13, weight: FontWeight.w600, color: Vv.muted)),
+                              TextSpan(text: tr('Today’s Dinacharya'), style: Vv.serif(17, weight: FontWeight.w700)),
+                              TextSpan(text: tr(' · daily routine'), style: Vv.sans(13, weight: FontWeight.w600, color: Vv.muted)),
                             ])),
-                            Text('${plan.where((p) => s.doneToday.contains(p.item.id)).length}/${plan.length} done',
+                            Text(trf('{done}/{total} done', {'done': plan.where((p) => s.doneToday.contains(p.item.id)).length, 'total': plan.length}),
                                 style: Vv.sans(13, weight: FontWeight.w700, color: Vv.green)),
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text(
                           input.focus == null
-                              ? 'Picked for your concerns and ${rituLabel(input.ritu!)}. Take the quiz to fit it to your body type.'
-                              : 'Picked for ${input.focus == input.vikriti?.raised ? 'your raised ${input.focus}' : 'your ${input.focus}'}, your concerns and ${rituLabel(input.ritu!)}.',
+                              ? trf('Picked for your concerns and {ritu}. Take the quiz to fit it to your body type.',
+                                  {'ritu': rituLabel(input.ritu!)})
+                              : input.focus == input.vikriti?.raised
+                                  ? trf('Picked for your raised {dosha}, your concerns and {ritu}.',
+                                      {'dosha': tr(input.focus!), 'ritu': rituLabel(input.ritu!)})
+                                  : trf('Picked for your {dosha}, your concerns and {ritu}.',
+                                      {'dosha': tr(input.focus!), 'ritu': rituLabel(input.ritu!)}),
                           style: Vv.sans(12, color: Vv.muted),
                         ),
                         const SizedBox(height: 8),
@@ -243,8 +273,8 @@ class DoshaScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const VvNote(
-                    text: 'Wellness guidance from classical texts and your intake — not a diagnosis. Herbs and medicines are only discussed with a Vaidya.',
+                  VvNote(
+                    text: tr('Wellness guidance from classical texts and your intake — not a diagnosis. Herbs and medicines are only discussed with a Vaidya.'),
                   ),
                 ],
               ),

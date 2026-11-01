@@ -1,3 +1,4 @@
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/ml/dosha_predictor.dart';
 import 'package:veda_verse/ml/vikriti.dart';
 
@@ -9,6 +10,12 @@ import 'package:veda_verse/ml/vikriti.dart';
 /// suggestion can say why it was picked and a Vaidya can review the rules.
 /// The catalogue holds routines, food habits, breathing and movement only;
 /// it never contains herbs, supplements or medicines.
+///
+/// Language: the catalogue is stored in English (the `...En` fields, also the
+/// keys into lib/l10n/hi_engine.dart) and every display getter (`title`,
+/// `why`, `where`, ...) and generated sentence goes through [tr] / [trf], so
+/// screens get Hindi when the app is in Hindi. Ids, dosha, concern,
+/// condition and season keys stay English because rules match on them.
 
 /// The six Ayurvedic seasons (Ritu) and their everyday names.
 const ritus = <String, String>{
@@ -26,8 +33,11 @@ String rituKeyFor(DateTime d) => const [
       'Varsha', 'Varsha', 'Sharad', 'Sharad', 'Hemanta', 'Hemanta',
     ][d.month - 1];
 
-/// "Hemanta (early winter)".
-String rituLabel(String ritu) => '$ritu (${ritus[ritu] ?? ''})';
+/// "Hemanta (early winter)", in English; [rituLabel] is the display text.
+String rituLabelEn(String ritu) => '$ritu (${ritus[ritu] ?? ''})';
+
+/// "Hemanta (early winter)" / "हेमंत ऋतु (शुरुआती सर्दी)".
+String rituLabel(String ritu) => tr(rituLabelEn(ritu));
 
 /// Everything the engine reads, as plain values so it can be unit tested.
 class EngineInput {
@@ -80,8 +90,19 @@ class EngineInput {
   String? get focus => targets.isEmpty ? null : targets.first;
 }
 
-/// Short phrase for an intake concern, e.g. "Can't sleep" -> "poor sleep".
-String concernPhrase(String concern) => VikritiResult.concerns[concern]?.$2 ?? concern.toLowerCase();
+/// Short English phrase for an intake concern, e.g. "Can't sleep" -> "poor
+/// sleep". Use this where English is needed whatever the app language.
+String concernPhraseEn(String concern) => VikritiResult.concerns[concern]?.$2 ?? concern.toLowerCase();
+
+/// [concernPhraseEn] in the app language, e.g. "poor sleep" / "नींद की परेशानी".
+String concernPhrase(String concern) => tr(concernPhraseEn(concern));
+
+/// Words joining two phrases: " and " / " और ".
+String get _and => Lang.hi ? ' और ' : ' and ';
+
+/// Safety flags as shown in sentences: "high bp" / "हाई बीपी" (lowercase keys
+/// in hi_engine.dart, so the sentence never depends on the intake labels).
+String _flagList(Iterable<String> flags) => flags.map((f) => tr(f.toLowerCase())).join(', ');
 
 bool _allergic(EngineInput input, Set<String> foods) {
   String stem(String s) {
@@ -103,8 +124,8 @@ bool _allergic(EngineInput input, Set<String> foods) {
 
 class PlanItem {
   final String id;
-  final String title;
-  final String why; // shown when no concern matches
+  final String titleEn;
+  final String whyEn; // shown when no concern matches
   final String time; // H:MM, 24-hour
   final Set<String> balances; // doshas
   final Set<String> helps; // intake concerns
@@ -115,13 +136,17 @@ class PlanItem {
   /// Ritus this item suits; empty means all year.
   final Set<String> seasons;
 
-  const PlanItem(this.id, this.title, this.why, this.time,
+  const PlanItem(this.id, this.titleEn, this.whyEn, this.time,
       {this.balances = const {},
       this.helps = const {},
       this.avoidIf = const {},
       this.foods = const {},
       this.diet = false,
       this.seasons = const {}});
+
+  /// Display text in the app language.
+  String get title => tr(titleEn);
+  String get why => tr(whyEn);
 
   bool inSeason(String? ritu) => ritu != null && seasons.contains(ritu);
   bool outOfSeason(String? ritu) => ritu != null && seasons.isNotEmpty && !seasons.contains(ritu);
@@ -211,9 +236,9 @@ List<PlannedItem> dailyPlan(EngineInput input, {int count = 4}) {
     if (targets.length > 1 && it.balances.contains(targets[1])) score += 1;
     if (it.inSeason(ritu)) score += 1;
     final reason = matched.isNotEmpty
-        ? 'For your ${concernPhrase(matched.first)}'
+        ? trf('For your {concern}', {'concern': concernPhrase(matched.first)})
         : it.inSeason(ritu)
-            ? 'Suits ${rituLabel(ritu!)}'
+            ? trf('Suits {ritu}', {'ritu': rituLabel(ritu!)})
             : it.why;
     scored.add((it, score, reason));
   }
@@ -239,11 +264,15 @@ String? vaidyaNote(EngineInput input) {
   final flags = input.flags.toList();
   final meds = input.medicines;
   if (flags.isEmpty && meds.isEmpty) return null;
-  final parts = <String>[
-    if (flags.isNotEmpty) 'you noted ${flags.map((f) => f.toLowerCase()).join(', ')}',
-    if (meds.isNotEmpty) 'you take ${meds.join(', ')}',
-  ];
-  return 'Because ${parts.join(' and ')}, check any diet or routine change with your Vaidya first.';
+  final args = {'flags': _flagList(flags), 'meds': meds.join(', ')};
+  if (meds.isEmpty) {
+    return trf('Because you noted {flags}, check any diet or routine change with your Vaidya first.', args);
+  }
+  if (flags.isEmpty) {
+    return trf('Because you take {meds}, check any diet or routine change with your Vaidya first.', args);
+  }
+  return trf('Because you noted {flags} and you take {meds}, check any diet or routine change with your Vaidya first.',
+      args);
 }
 
 // ---------------------------------------------------------------------------
@@ -251,14 +280,22 @@ String? vaidyaNote(EngineInput input) {
 // ---------------------------------------------------------------------------
 
 class YogaSession {
-  final String title, where, time, price, cta;
+  /// English catalogue text; the getters below give the display text.
+  final String titleEn, whereEn, timeEn, priceEn, ctaEn;
   final Set<String> balances;
   final Set<String> helps;
   final Set<String> avoidIf;
   final int bg; // ARGB tint for the card header
-  const YogaSession(this.title, this.where, this.time, this.price, this.cta, this.bg,
+  const YogaSession(this.titleEn, this.whereEn, this.timeEn, this.priceEn, this.ctaEn, this.bg,
       {this.balances = const {}, this.helps = const {}, this.avoidIf = const {}});
-  bool get free => price == 'Free';
+  bool get free => priceEn == 'Free';
+
+  /// Display text in the app language.
+  String get title => tr(titleEn);
+  String get where => tr(whereEn);
+  String get time => tr(timeEn);
+  String get price => tr(priceEn);
+  String get cta => tr(ctaEn);
 }
 
 class RankedSession {
@@ -305,13 +342,13 @@ List<RankedSession> rankSessions(List<YogaSession> sessions, EngineInput input) 
     if (targets.length > 1 && s.balances.contains(targets[1])) score += 1;
     final String reason;
     if (unsafe.isNotEmpty) {
-      reason = 'Ask your Vaidya first';
+      reason = tr('Ask your Vaidya first');
     } else if (matched.isNotEmpty) {
-      reason = 'For your ${concernPhrase(matched.first)}';
+      reason = trf('For your {concern}', {'concern': concernPhrase(matched.first)});
     } else if (targets.isNotEmpty && s.balances.contains(targets[0])) {
-      reason = 'Balances ${targets[0]}';
+      reason = trf('Balances {dosha}', {'dosha': tr(targets[0])});
     } else {
-      reason = 'Good for everyone';
+      reason = tr('Good for everyone');
     }
     ranked.add(RankedSession(s, score, reason, unsafe.isNotEmpty));
   }
@@ -328,14 +365,22 @@ List<RankedSession> rankSessions(List<YogaSession> sessions, EngineInput input) 
 /// The one-line explanation above the yoga list.
 String rankingNote(EngineInput input) {
   final focus = input.focus;
-  final concerns = input.concerns.map(concernPhrase).take(2).toList();
-  final forConcerns = concerns.isEmpty ? '' : 'your ${concerns.join(' and ')}';
+  final concerns = input.concerns.map(concernPhrase).take(2).join(_and);
   if (focus == null) {
     return concerns.isEmpty
-        ? 'Take the Prakriti quiz on the Dosha tab and we will rank these for your body type.'
-        : 'Ranked for $forConcerns. Take the Prakriti quiz to rank for your body type too.';
+        ? tr('Take the Prakriti quiz on the Dosha tab and we will rank these for your body type.')
+        : trf('Ranked for your {concerns}. Take the Prakriti quiz to rank for your body type too.',
+            {'concerns': concerns});
   }
-  final flags = input.flags.isEmpty ? '' : ' Sessions not safe with ${input.flags.map((f) => f.toLowerCase()).join(', ')} are moved to the end.';
-  return 'Ranked for ${focus == input.vikriti?.raised ? 'your raised $focus' : focus}'
-      '${forConcerns.isEmpty ? '' : ' and $forConcerns'}.$flags';
+  final args = {'dosha': tr(focus), 'concerns': concerns};
+  final raised = focus == input.vikriti?.raised;
+  final main = concerns.isEmpty
+      ? (raised ? trf('Ranked for your raised {dosha}.', args) : trf('Ranked for {dosha}.', args))
+      : (raised
+          ? trf('Ranked for your raised {dosha} and your {concerns}.', args)
+          : trf('Ranked for {dosha} and your {concerns}.', args));
+  final flags = input.flags.isEmpty
+      ? ''
+      : trf(' Sessions not safe with {flags} are moved to the end.', {'flags': _flagList(input.flags)});
+  return '$main$flags';
 }

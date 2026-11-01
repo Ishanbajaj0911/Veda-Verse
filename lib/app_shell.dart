@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/screens/app_home_screen.dart';
 import 'package:veda_verse/screens/buddy_screen.dart';
 import 'package:veda_verse/screens/dosha_screen.dart';
@@ -73,7 +74,7 @@ class BuddyFab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: 'Open Ayu Buddy',
+      label: tr('Open Ayu Buddy'),
       child: VvTap(
         onTap: onTap,
         child: Container(
@@ -98,7 +99,7 @@ class VvNavBar extends StatelessWidget {
   const VvNavBar({super.key, required this.active, required this.onTap});
 
   static const _items = [
-    (Icons.home_outlined, 'Home', Vv.deep),
+    (Icons.home_outlined, 'Home', Vv.deep), // labels shown with tr()
     (Icons.menu_book_outlined, 'Learn', Vv.plum),
     (Icons.contrast_rounded, 'Dosha', Vv.brown),
     (Icons.self_improvement_rounded, 'Yoga', Vv.rust),
@@ -132,7 +133,7 @@ class VvNavBar extends StatelessWidget {
                       Icon(_items[i].$1, size: 22, color: active == i ? _items[i].$3 : Vv.muted),
                       const SizedBox(height: 4),
                       Text(
-                        _items[i].$2,
+                        tr(_items[i].$2),
                         style: Vv.sans(12, weight: FontWeight.w700, color: active == i ? _items[i].$3 : Vv.muted),
                       ),
                     ],

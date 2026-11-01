@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:veda_verse/app_shell.dart';
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/ml/dosha_predictor.dart';
-import 'package:veda_verse/screens/booking_screen.dart';
-import 'package:veda_verse/screens/vaidya_screen.dart';
 import 'package:veda_verse/state/app_state.dart';
 import 'package:veda_verse/theme/vv.dart';
 
@@ -36,14 +35,14 @@ class PrakritiResultScreen extends StatelessWidget {
     final vikriti = AppState.instance.vikriti;
     final String a, b;
     if (p.type == 'Tridoshic') {
-      a = 'Tridoshic\n';
-      b = 'balanced';
+      a = '${tr('Tridoshic')}\n';
+      b = tr('balanced');
     } else if (p.type.contains('-')) {
-      a = '${p.ranked[0].key}–\n';
-      b = p.ranked[1].key;
+      a = '${tr(p.ranked[0].key)}–\n';
+      b = tr(p.ranked[1].key);
     } else {
-      a = '${p.dominant}\n';
-      b = 'dominant';
+      a = '${tr(p.dominant)}\n';
+      b = tr('dominant');
     }
 
     return Scaffold(
@@ -60,11 +59,11 @@ class PrakritiResultScreen extends StatelessWidget {
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(24, 40, 24, 0),
                       children: [
-                        Text('YOUR PRAKRITI · NATURAL BODY TYPE', style: Vv.kicker(Vv.onDeepMuted, spacing: 1.4)),
+                        Text(tr('YOUR PRAKRITI · NATURAL BODY TYPE'), style: Vv.kicker(Vv.onDeepMuted, spacing: 1.4)),
                         const SizedBox(height: 14),
                         SerifTitle(a, b, size: 46, color: Vv.bg, bColor: Vv.goldLight, height: 1.02, letterSpacing: -0.5),
                         const SizedBox(height: 14),
-                        Text(_blurb[p.type == 'Tridoshic' ? 'Tridoshic' : p.dominant]!, style: Vv.sans(15, color: Vv.onDeepMuted2, height: 1.55)),
+                        Text(tr(_blurb[p.type == 'Tridoshic' ? 'Tridoshic' : p.dominant]!), style: Vv.sans(15, color: Vv.onDeepMuted2, height: 1.55)),
                         if (why != null && why!.isNotEmpty) ...[
                           const SizedBox(height: 14),
                           Container(
@@ -85,7 +84,7 @@ class PrakritiResultScreen extends StatelessWidget {
                                   child: Text.rich(TextSpan(
                                     style: Vv.sans(14, color: Vv.bg, height: 1.45),
                                     children: [
-                                      TextSpan(text: 'Why: ', style: Vv.sans(14, weight: FontWeight.w800, color: Vv.goldLight)),
+                                      TextSpan(text: tr('Why: '), style: Vv.sans(14, weight: FontWeight.w800, color: Vv.goldLight)),
                                       TextSpan(text: why),
                                     ],
                                   )),
@@ -102,8 +101,8 @@ class PrakritiResultScreen extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text.rich(TextSpan(children: [
-                                TextSpan(text: r.$1, style: Vv.sans(15, weight: FontWeight.w700, color: Vv.bg)),
-                                TextSpan(text: ' · ${r.$2}', style: Vv.sans(15, color: Vv.onDeepMuted)),
+                                TextSpan(text: tr(r.$1), style: Vv.sans(15, weight: FontWeight.w700, color: Vv.bg)),
+                                TextSpan(text: ' · ${tr(r.$2)}', style: Vv.sans(15, color: Vv.onDeepMuted)),
                               ])),
                               Text('${r.$3}%', style: Vv.serif(22, color: Vv.bg)),
                             ],
@@ -133,7 +132,7 @@ class PrakritiResultScreen extends StatelessWidget {
                           ),
                           child: Row(
                             children: [
-                              Text('RIGHT NOW', style: Vv.kicker(Vv.goldLight)),
+                              Text(tr('RIGHT NOW'), style: Vv.kicker(Vv.goldLight)),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: vikriti != null
@@ -141,19 +140,19 @@ class PrakritiResultScreen extends StatelessWidget {
                                         style: Vv.sans(14, color: Vv.bg, height: 1.4),
                                         children: vikriti.raised == null
                                             ? [
-                                                TextSpan(text: 'No single dosha stands out', style: Vv.sans(14, weight: FontWeight.w800, color: Vv.bg)),
-                                                const TextSpan(text: ' in the last two weeks. Keep your routine steady.'),
+                                                TextSpan(text: tr('No single dosha stands out'), style: Vv.sans(14, weight: FontWeight.w800, color: Vv.bg)),
+                                                TextSpan(text: tr(' in the last two weeks. Keep your routine steady.')),
                                               ]
                                             : [
-                                                TextSpan(text: '${vikriti.raised} is raised', style: Vv.sans(14, weight: FontWeight.w800, color: Vv.bg)),
-                                                TextSpan(text: ' (your Vikriti) — matches your ${vikriti.signs.take(2).map((x) => x.toLowerCase()).join(' and ')}. Your plan starts here.'),
+                                                TextSpan(text: trf('{dosha} is raised', {'dosha': tr(vikriti.raised!)}), style: Vv.sans(14, weight: FontWeight.w800, color: Vv.bg)),
+                                                TextSpan(text: trf(' (your Vikriti) — matches your {signs}. Your plan starts here.', {'signs': vikriti.shownSigns()})),
                                               ],
                                       ))
                                     : Text.rich(TextSpan(
                                         style: Vv.sans(14, color: Vv.bg, height: 1.4),
                                         children: [
-                                          TextSpan(text: '${second.key} is your close second', style: Vv.sans(14, weight: FontWeight.w800, color: Vv.bg)),
-                                          const TextSpan(text: ' — your daily plan balances both.'),
+                                          TextSpan(text: trf('{dosha} is your close second', {'dosha': tr(second.key)}), style: Vv.sans(14, weight: FontWeight.w800, color: Vv.bg)),
+                                          TextSpan(text: tr(' — your daily plan balances both.')),
                                         ],
                                       )),
                               ),
@@ -168,11 +167,11 @@ class PrakritiResultScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text('Self-assessment, not a diagnosis. A Vaidya confirms it with Nadi Pariksha (pulse reading).',
+                        Text(tr('Self-assessment, not a diagnosis. A Vaidya confirms it with Nadi Pariksha (pulse reading).'),
                             style: Vv.sans(12, color: Vv.onDeepMuted, height: 1.5)),
                         const SizedBox(height: 12),
                         VvButton(
-                          label: 'See my daily plan',
+                          label: tr('See my daily plan'),
                           height: 56,
                           weight: FontWeight.w800,
                           bg: Vv.gold,
@@ -183,11 +182,18 @@ class PrakritiResultScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        VvTap(
-                          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => BookingScreen(vaidya: vaidyas.first))),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Text('Confirm with a Vaidya', textAlign: TextAlign.center, style: Vv.sans(14, weight: FontWeight.w700, color: Vv.bg)),
+                        // Opens the Vaidya list so the user picks who to see.
+                        VvButton(
+                          key: const ValueKey('result-vaidya'),
+                          label: tr('Confirm with a Vaidya'),
+                          height: 48,
+                          fontSize: 14,
+                          bg: Colors.transparent,
+                          fg: Vv.bg,
+                          borderColor: const Color(0x66F0C46C),
+                          onTap: () => Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (_) => const AppShell(initialIndex: Tabs.vaidya)),
+                            (_) => false,
                           ),
                         ),
                       ],

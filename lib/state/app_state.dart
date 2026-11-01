@@ -1,20 +1,33 @@
 import 'package:flutter/foundation.dart';
 import 'package:veda_verse/ai/health_ai.dart';
 import 'package:veda_verse/engine/plan_engine.dart';
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/ml/dosha_predictor.dart';
 import 'package:veda_verse/ml/vikriti.dart';
 
-/// App state for the demo build. The quiz result and today's plan ticks are
-/// saved on the device by QuizStore (lib/state/quiz_store.dart); the rest is
-/// in memory. Firebase persistence comes later.
+/// App state for the logged-in account. The profile is saved per account by
+/// Accounts (lib/state/accounts.dart), the quiz result and today's ticks by
+/// QuizStore. Lab reports and Buddy flags stay in memory. Firebase later.
+///
+/// The field defaults are demo data used by tests and screenshots; a new
+/// account starts blank (see [resetForNewAccount]).
 class AppState extends ChangeNotifier {
   AppState._();
   static final AppState instance = AppState._();
 
+  /// The logged-in account ("VV-…") and its email. Empty when logged out.
+  String accountId = '';
+  String email = '';
+
+  /// True once this account finished consent and the 4 intake steps.
+  bool onboarded = false;
+
   String name = 'Aarav Mehta';
   int age = 27;
   String gender = 'Female';
-  String language = 'EN';
+
+  /// 'EN' or 'HI'. Set it with Lang.set, which redraws the app.
+  String get language => Lang.code;
   Set<String> issues = {'Can’t sleep', 'Always stressed'};
   String since = '1–3 mo';
   Set<String> conditions = {'High BP'};
@@ -48,6 +61,22 @@ class AppState extends ChangeNotifier {
   final List<BuddyFlag> buddyFlags = [];
 
   int streak = 7;
+
+  /// Vaidya consults this account booked, oldest first.
+  List<Booking> bookings = [];
+
+  /// Learn articles the user saved (article ids).
+  Set<String> savedArticles = {};
+
+  /// Yoga sessions the user booked or joined (YogaSession.titleEn).
+  Set<String> joinedSessions = {};
+
+  /// Booked consults that haven't ended yet (a consult lasts 30 minutes),
+  /// soonest first.
+  List<Booking> get upcoming {
+    final now = DateTime.now().subtract(const Duration(minutes: 30));
+    return bookings.where((b) => b.when.isAfter(now)).toList()..sort((a, b) => a.when.compareTo(b.when));
+  }
 
   /// Ids of today's Dinacharya items the user ticked (see plan_engine.dart),
   /// and the day they belong to (yyyy-mm-dd). Ticks reset on a new day.
@@ -86,7 +115,7 @@ class AppState extends ChangeNotifier {
         concerns: issues,
         conditions: conditions,
         gender: gender,
-        pregnancy: pregnancy,
+        pregnancy: pregnancy.isEmpty ? 'No' : pregnancy,
         allergies: allergies,
         medicines: medicines,
         ritu: rituKeyFor(DateTime.now()),
@@ -97,19 +126,20 @@ class AppState extends ChangeNotifier {
 
   bool get flaggedForVaidya =>
       conditions.any((c) => c != 'None of these') ||
-      (gender == 'Female' && pregnancy != 'No');
+      (gender == 'Female' && (pregnancy == 'Pregnant' || pregnancy == 'Breastfeeding'));
 
   /// True once the user has finished the Prakriti quiz.
   bool get hasPrakriti => prediction != null;
 
   /// "Vata dominant", "Vata-Pitta", "Tridoshic", or "Not checked yet"
-  /// before the quiz. Nothing is guessed for a new user.
+  /// before the quiz. Nothing is guessed for a new user. In Hindi when the
+  /// app is in Hindi ("वात प्रधान", "वात-पित्त", "त्रिदोषज").
   String get prakritiLabel {
     final p = prediction;
-    if (p == null) return 'Not checked yet';
-    if (p.type == 'Tridoshic') return 'Tridoshic';
-    if (p.type.contains('-')) return p.type;
-    return '${p.dominant} dominant';
+    if (p == null) return tr('Not checked yet');
+    if (p.type == 'Tridoshic') return tr('Tridoshic');
+    if (p.type.contains('-')) return p.type.split('-').map(tr).join('-');
+    return trf('{dosha} dominant', {'dosha': tr(p.dominant)});
   }
 
   /// Vata / Pitta / Kapha shares as whole percentages. All 0 until the quiz
@@ -125,5 +155,131 @@ class AppState extends ChangeNotifier {
   void update(void Function(AppState s) fn) {
     fn(this);
     notifyListeners();
+  }
+
+  /// A brand-new account: every intake answer empty so the user must fill
+  /// each one in. Keeps the welcome-screen picks, which pre-select "Your story".
+  void resetForNewAccount({required String id, required String email}) {
+    accountId = id;
+    this.email = email;
+    onboarded = false;
+    name = '';
+    age = 0;
+    gender = '';
+    since = '';
+    conditions = {};
+    pregnancy = '';
+    allergies = [];
+    medicines = [];
+    consentStore = true;
+    consentVaidya = true;
+    consentAi = false;
+    consentNotify = true;
+    streak = 0;
+    bookings = [];
+    savedArticles = {};
+    joinedSessions = {};
+    _clearResults();
+    notifyListeners();
+  }
+
+  /// Logged out: forget everything that belonged to the account.
+  void clearAccount() {
+    resetForNewAccount(id: '', email: '');
+    issues = {};
+    welcomeTiles = {};
+  }
+
+  void _clearResults() {
+    prediction = null;
+    prakritiAnswers = null;
+    vikritiAnswers = null;
+    vikritiLabels = const [];
+    labReport = null;
+    buddyFlags.clear();
+    dinacharyaDone = {};
+    doneDate = '';
+  }
+
+  /// The profile part saved per account (quiz answers are saved by QuizStore).
+  Map<String, Object?> toProfile() => {
+        'onboarded': onboarded,
+        'name': name,
+        'age': age,
+        'gender': gender,
+        'issues': issues.toList(),
+        'since': since,
+        'conditions': conditions.toList(),
+        'pregnancy': pregnancy,
+        'allergies': allergies,
+        'medicines': medicines,
+        'welcomeTiles': welcomeTiles.toList(),
+        'consentStore': consentStore,
+        'consentVaidya': consentVaidya,
+        'consentAi': consentAi,
+        'consentNotify': consentNotify,
+        'streak': streak,
+        'savedArticles': savedArticles.toList(),
+        'joinedSessions': joinedSessions.toList(),
+        'bookings': [for (final b in bookings) b.toJson()],
+      };
+
+  /// Loads a saved profile for account [id]. Unknown or missing fields fall
+  /// back to empty, so an old or damaged save never crashes the app.
+  void loadProfile(Map<String, Object?> p, {required String id, required String email}) {
+    resetForNewAccount(id: id, email: email);
+    List<String> strs(Object? v) => v is List ? [for (final x in v) if (x is String) x] : <String>[];
+    String str(Object? v) => v is String ? v : '';
+    onboarded = p['onboarded'] == true;
+    name = str(p['name']);
+    age = p['age'] is int ? p['age'] as int : 0;
+    gender = str(p['gender']);
+    issues = strs(p['issues']).toSet();
+    since = str(p['since']);
+    conditions = strs(p['conditions']).toSet();
+    pregnancy = str(p['pregnancy']);
+    allergies = strs(p['allergies']);
+    medicines = strs(p['medicines']);
+    welcomeTiles = strs(p['welcomeTiles']).toSet();
+    consentStore = true;
+    consentVaidya = p['consentVaidya'] != false;
+    consentAi = p['consentAi'] == true;
+    consentNotify = p['consentNotify'] != false;
+    streak = p['streak'] is int ? p['streak'] as int : 0;
+    savedArticles = strs(p['savedArticles']).toSet();
+    joinedSessions = strs(p['joinedSessions']).toSet();
+    bookings = [
+      if (p['bookings'] is List)
+        for (final b in p['bookings'] as List)
+          if (Booking.fromJson(b) case final Booking ok) ok,
+    ];
+    notifyListeners();
+  }
+}
+
+/// A Vaidya consult the user booked.
+class Booking {
+  /// The Vaidya's name, e.g. "Dr. Rohan Kapoor" (see `vaidyas`).
+  final String vaidya;
+  final DateTime when;
+
+  /// 'Video', 'In clinic' or 'Phone' (English; shown with tr()).
+  final String mode;
+
+  /// The user agreed to share their health summary with this Vaidya.
+  final bool shareSummary;
+
+  const Booking({required this.vaidya, required this.when, required this.mode, this.shareSummary = true});
+
+  Map<String, Object> toJson() => {'vaidya': vaidya, 'when': when.toIso8601String(), 'mode': mode, 'share': shareSummary};
+
+  /// Null for anything that isn't a valid saved booking.
+  static Booking? fromJson(Object? j) {
+    if (j is! Map) return null;
+    final when = DateTime.tryParse('${j['when']}');
+    final vaidya = j['vaidya'];
+    final mode = j['mode'];
+    if (when == null || vaidya is! String || mode is! String) return null;
+    return Booking(vaidya: vaidya, when: when, mode: mode, shareSummary: j['share'] != false);
   }
 }

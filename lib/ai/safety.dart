@@ -210,17 +210,32 @@ class Safety {
       r"|hyperthyroidism|hypertension|high bp|cancer|depression|anxiety disorder|ibs|an infection|fatty liver|anemia|anaemia)\b";
   static const _stopMeds = r"\b(stop|skip|reduce|quit|replace) (taking )?(your|the) (medicine|medicines|medication|tablets|pills|meds)\b";
 
+  /// Words Gemini may use for each condition the user picked in the intake.
+  /// Repeating something the user told us ("you have diabetes", when they
+  /// ticked Diabetes) is not a diagnosis.
+  static const _reported = {
+    'diabetes': ['diabetes'],
+    'high bp': ['high bp', 'hypertension'],
+    'thyroid': ['thyroid', 'hypothyroidism', 'hyperthyroidism'],
+    'asthma': ['asthma'],
+  };
+
   /// Checks Gemini's answer before it is shown. Turns it into a Vaidya card
   /// if it gives an amount of a medicine or remedy, names a disease the user
-  /// "has", or tells them to change their medicines.
-  static SafetyVerdict checkAnswer(String answer) {
+  /// "has" that they never told us about, or tells them to change their
+  /// medicines. [myConditions] are the user's intake conditions.
+  static SafetyVerdict checkAnswer(String answer, {Iterable<String> myConditions = const []}) {
     final t = normalize(answer);
     final amount = RegExp(_doseAmount).firstMatch(t);
     if (amount != null && _substance(t, const []) != null) {
       return SafetyVerdict(SafetyLevel.vaidya, 'dose in answer: ${amount.group(0)}');
     }
-    final dx = RegExp(_diagnosis).firstMatch(t);
-    if (dx != null) return SafetyVerdict(SafetyLevel.vaidya, 'diagnosis in answer: ${dx.group(0)}');
+    final known = {for (final c in myConditions) ...?_reported[normalize(c)]};
+    for (final dx in RegExp(_diagnosis).allMatches(t)) {
+      if (!known.contains(dx.group(2))) {
+        return SafetyVerdict(SafetyLevel.vaidya, 'diagnosis in answer: ${dx.group(0)}');
+      }
+    }
     final stop = RegExp(_stopMeds).firstMatch(t);
     if (stop != null) return SafetyVerdict(SafetyLevel.vaidya, 'medicine change in answer: ${stop.group(0)}');
     return SafetyVerdict.ok;

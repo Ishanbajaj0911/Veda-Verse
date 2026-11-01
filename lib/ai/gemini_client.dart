@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show Uint8List, visibleForTesting;
 import 'package:http/http.dart' as http;
 import 'package:veda_verse/ai/ai_key.dart';
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/state/app_state.dart';
 
 /// A document or photo the user shared (lab report, prescription, …).
@@ -123,13 +124,13 @@ class GeminiClient {
       final m = e.message.toLowerCase();
       // Status codes first: a 429 body can also mention the key.
       if (m.contains('returned 429') || m.contains('quota') || m.contains('exhausted')) {
-        return 'This key has reached its free limit for now. Try again later.';
+        return tr('This key has reached its free limit for now. Try again later.');
       }
       if (RegExp(r'returned (400|401|403)').hasMatch(m) || m.contains('api key')) {
-        return 'Google didn’t accept this key. Check you copied all of it.';
+        return tr('Google didn’t accept this key. Check you copied all of it.');
       }
-      if (m.contains('timed out') || m.contains('failed')) return 'Couldn’t reach Google. Check your internet and try again.';
-      return 'The key didn’t work right now. Please try again.';
+      if (m.contains('timed out') || m.contains('failed')) return tr('Couldn’t reach Google. Check your internet and try again.');
+      return tr('The key didn’t work right now. Please try again.');
     }
   }
 
@@ -294,6 +295,13 @@ class GeminiClient {
     }
   }
 
+  static const _replySameLanguage =
+      "- Reply in the same language and script as the user's latest message: English if it is in English, Hinglish (Hindi in Latin letters) if it is Hinglish, Devanagari Hindi if it is Devanagari.";
+
+  /// Used when the app is set to Hindi.
+  static const _replyHindi =
+      "- The app is set to Hindi. Reply in simple, everyday Hindi written in Devanagari script, using the polite 'aap' form, unless the user's latest message is clearly in English or Hinglish (Hindi in Latin letters); then reply in that language and script. Keep words like Vata, Pitta, Kapha, Vaidya and yoga as वात, पित्त, कफ, वैद्य and योग. Write numbers with digits 0-9.";
+
   static String systemPrompt(AppState s, {bool voice = false, bool hindi = false}) {
     final v = s.vikriti;
     final mix = s.hasPrakriti
@@ -314,15 +322,16 @@ User profile: ${s.firstName}, ${s.age}, ${s.gender}. Prakriti: ${s.prakritiLabel
 Scope. You ONLY give everyday wellness suggestions and basic information: daily routine (Dinacharya), food habits, sleep, stress, yoga and breathing, seasonal tips (Ritucharya), Ayurveda basics, the user's dosha, and how to use VedaVerse. For anything else, including diagnosis, treatment plans, medical tests beyond plain-word explanation, or unrelated topics, reply in one short sentence that you can only help with daily wellness suggestions, and point them to a Vaidya on VedaVerse or the right professional.
 
 Safety rules:
-- Never diagnose, never say the user has a disease, and never prescribe.
+- Never diagnose, never say the user has a disease, and never prescribe. When you refer to a condition from their profile, say "you mentioned diabetes", never "you have diabetes", and only bring it up when it matters for the question.
 - Never advise on taking, stopping, changing, combining or dosing any medicine, herb, supplement, kadha, churna, alcohol or other substance. Say that a Vaidya on VedaVerse should guide that.
 - Emergencies in India: for chest pain, trouble breathing, fainting, heavy bleeding or stroke signs, tell them to call 108 for an ambulance (112 also works) and say nothing else. For thoughts of suicide or self-harm, gently urge them to call Tele-MANAS 14416 (free, 24x7) or 108 now, and say nothing else.
 - Respect the user's conditions and allergies in every suggestion.${flags.isEmpty ? '' : ' This user is flagged (${flags.join(', ')}): keep suggestions gentle and ask them to check any diet or routine change with their Vaidya first.'}
 - If the user shares a document or photo (for example a lab report or prescription), explain in plain words what it shows: the test names and whether each value is inside the printed range. Never interpret it as a diagnosis and never comment on medicines in it; suggest discussing it with their Vaidya or doctor. If it is unreadable or not health-related, say so briefly.
 
 Style:
-- Reply in the same language and script as the user's latest message: English if it is in English, Hinglish (Hindi in Latin letters) if it is Hinglish, Devanagari Hindi if it is Devanagari.
-- Be warm and practical. Give one to three concrete suggestions. Keep answers under 110 words. Plain text only: no markdown, asterisks, headings or bullet symbols.
+${Lang.hi ? _replyHindi : _replySameLanguage}
+- If the message is only a greeting or small talk (hello, hi, namaste, thanks), reply in one or two short sentences: greet them by first name and ask what they would like help with today, for example food, sleep, stress or yoga. Do not list their profile back to them and do not give tips yet.
+- Otherwise be warm and practical. Give one to three concrete suggestions. Keep answers under 110 words. Plain text only: no markdown, asterisks, headings or bullet symbols.
 - Do not cite book or chapter names.
 ${voice ? '- The user is speaking and your reply will be read aloud: keep it under 70 words and in ${hindi ? 'Hindi written in Devanagari script' : 'simple English'}.' : ''}''';
   }

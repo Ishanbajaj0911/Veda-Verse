@@ -2,7 +2,9 @@ import 'package:veda_verse/ai/gemini_client.dart';
 import 'package:veda_verse/ai/offline_reader.dart';
 import 'package:veda_verse/ai/safety.dart';
 import 'package:veda_verse/engine/plan_engine.dart' show concernPhrase;
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/ml/dosha_predictor.dart';
+import 'package:veda_verse/ml/vikriti.dart';
 import 'package:veda_verse/state/app_state.dart';
 
 /// Gemini-powered helpers outside the chat: reading lab reports, reading
@@ -27,7 +29,24 @@ class LabTest {
 
   String get valueWithUnit => unit.isEmpty ? value : '$value $unit';
   bool get outOfRange => flag == 'High' || flag == 'Low';
+
+  /// The flag as shown on a pill: High / Low / OK, or "–" when unknown
+  /// (Hindi: ज़्यादा / कम / सामान्य). [flag] itself stays English.
+  String get flagLabel => switch (flag) {
+        'High' => tr('High'),
+        'Low' => tr('Low'),
+        'OK' => Lang.hi ? tr('Normal') : 'OK',
+        _ => '–',
+      };
+
+  /// The flag inside a sentence: "high" / "low" (Hindi: ज़्यादा / कम).
+  String get flagWord => Lang.hi ? tr(flag) : flag.toLowerCase();
 }
+
+/// "a, b and c" in the current language.
+String _andList(List<String> xs) => xs.length == 1
+    ? xs.first
+    : trf('{a} and {b}', {'a': xs.sublist(0, xs.length - 1).join(', '), 'b': xs.last});
 
 /// Who read a lab report.
 enum LabSource { gemini, phone, sample }
@@ -48,15 +67,20 @@ class LabReport {
 
   List<LabTest> get flagged => tests.where((t) => t.outOfRange).toList();
 
+  /// A test's name as shown. Real reports keep the printed name; the
+  /// built-in example's names are translated.
+  String nameOf(LabTest t) => sample ? tr(t.name) : t.name;
+
   /// Plain-words line computed from the flags, never from the AI.
   String get summary {
-    if (tests.isEmpty) return 'No test values could be read from this file.';
+    if (tests.isEmpty) return tr('No test values could be read from this file.');
     final f = flagged;
-    if (f.isEmpty) return 'All ${tests.length} values are inside the printed range.';
-    final names = f.map((t) => '${t.name} (${t.flag.toLowerCase()})').toList();
-    final list = names.length == 1 ? names.first : '${names.sublist(0, names.length - 1).join(', ')} and ${names.last}';
-    final n = f.length == 1 ? '1 value is' : '${f.length} values are';
-    return '$n outside the printed range: $list. Your Vaidya will see this before your consult.';
+    if (f.isEmpty) return trf('All {n} values are inside the printed range.', {'n': tests.length});
+    final list = _andList(f.map((t) => '${nameOf(t)} (${t.flagWord})').toList());
+    return f.length == 1
+        ? trf('1 value is outside the printed range: {list}. Your Vaidya will see this before your consult.', {'list': list})
+        : trf('{n} values are outside the printed range: {list}. Your Vaidya will see this before your consult.',
+            {'n': f.length, 'list': list});
   }
 
   static double? _num(String s) {
@@ -172,7 +196,7 @@ class HealthAi {
       schema: _labSchema,
     ) as Map<String, dynamic>;
     if (out['is_lab_report'] != true) {
-      throw const NotThatDocument('This doesn’t look like a lab report. Please share a photo or PDF of your blood or urine test report.');
+      throw NotThatDocument(tr('This doesn’t look like a lab report. Please share a photo or PDF of your blood or urine test report.'));
     }
     String s(Object? v) => (v ?? '').toString().trim();
     final tests = <LabTest>[
@@ -213,7 +237,7 @@ class HealthAi {
       schema: _rxSchema,
     ) as Map<String, dynamic>;
     if (out['is_prescription'] != true) {
-      throw const NotThatDocument('This doesn’t look like a prescription. Please share a clear photo or PDF of it.');
+      throw NotThatDocument(tr('This doesn’t look like a prescription. Please share a clear photo or PDF of it.'));
     }
     final seen = <String>{};
     final names = <String>[];
@@ -237,7 +261,9 @@ class HealthAi {
       final text = await _ai.generate(
         system: 'You write a three-sentence handover note for an Ayurvedic Vaidya before a consultation. Use ONLY the '
             'facts given; add nothing. Do not diagnose, do not suggest treatment, herbs, medicines or doses. Plain '
-            'text, third person, under 80 words.',
+            'text, third person, under 80 words.'
+            '${Lang.hi ? ' Write it in simple everyday Hindi in Devanagari script. Keep names, medicine names, lab test '
+                'names and units exactly as given.' : ''}',
         prompt: sheet.asFacts(),
       ) as String;
       final clean = text.replaceAll(RegExp(r'\*\*|__|^#+\s*', multiLine: true), '').trim();
@@ -301,7 +327,22 @@ class CaseSheet {
     if (m == null || answers == null) return '';
     final i = qs.indexWhere((q) => q.title == title);
     if (i < 0 || i >= answers.length) return '';
-    return qs[i].options[answers[i]];
+    final hi = Lang.hi ? qs[i].optionsHi : null;
+    return hi != null && answers[i] < hi.length ? hi[answers[i]] : qs[i].options[answers[i]];
+  }
+
+  /// A Vikriti sign (an English quiz option or concern phrase) as shown.
+  static String _sign(String s, List<QuizQuestion> qs) {
+    if (!Lang.hi) return s;
+    for (final q in qs) {
+      final i = q.options.indexOf(s);
+      final hi = q.optionsHi;
+      if (i >= 0 && hi != null && i < hi.length) return hi[i];
+    }
+    for (final e in VikritiResult.concerns.entries) {
+      if (e.value.$2 == s) return tr(e.key);
+    }
+    return tr(s);
   }
 
   factory CaseSheet.from(AppState s, [DoshaPredictor? model]) {
@@ -313,11 +354,11 @@ class CaseSheet {
     final pa = s.hasPrakriti ? s.prakritiAnswers : null;
     final va = s.hasPrakriti ? s.vikritiAnswers : null;
     final rows = <(String, String)>[
-      ('Agni (hunger)', _answer(model, pa, p, 'How is your hunger?')),
-      ('Agni lately', _answer(model, va, vq, 'How has your stomach been lately?')),
-      ('Mala (bowel)', _answer(model, pa, p, 'How are your bowel movements usually?')),
-      ('Nidra (sleep)', _answer(model, pa, p, 'How do you usually sleep?')),
-      ('Nidra lately', _answer(model, va, vq, 'How has your sleep been lately?')),
+      (tr('Agni (hunger)'), _answer(model, pa, p, 'How is your hunger?')),
+      (tr('Agni lately'), _answer(model, va, vq, 'How has your stomach been lately?')),
+      (tr('Mala (bowel)'), _answer(model, pa, p, 'How are your bowel movements usually?')),
+      (tr('Nidra (sleep)'), _answer(model, pa, p, 'How do you usually sleep?')),
+      (tr('Nidra lately'), _answer(model, va, vq, 'How has your sleep been lately?')),
     ].where((r) => r.$2.isNotEmpty).toList();
     return CaseSheet(
       name: s.name,
@@ -330,11 +371,15 @@ class CaseSheet {
       medicines: List.of(s.medicines),
       allergies: List.of(s.allergies),
       prakriti: s.hasPrakriti
-          ? '${s.prakritiLabel} (Vata ${mix['Vata']}%, Pitta ${mix['Pitta']}%, Kapha ${mix['Kapha']}%)'
-          : 'Not checked yet',
+          ? trf('{label} (Vata {v}%, Pitta {p}%, Kapha {k}%)',
+              {'label': s.prakritiLabel, 'v': mix['Vata'], 'p': mix['Pitta'], 'k': mix['Kapha']})
+          : tr('Not checked yet'),
       vikriti: v == null
-          ? 'Not checked yet'
-          : (v.raised == null ? 'No single dosha stands out' : '${v.raised} raised: ${v.signs.take(3).join(', ')}'),
+          ? tr('Not checked yet')
+          : (v.raised == null
+              ? tr('No single dosha stands out')
+              : trf('{dosha} raised: {signs}',
+                  {'dosha': tr(v.raised!), 'signs': v.signs.take(3).map((x) => _sign(x, vq)).join(', ')})),
       agniMalaNidra: rows,
       labs: s.labReport,
       flags: List.of(s.buddyFlags),
@@ -361,6 +406,7 @@ class CaseSheet {
 
   /// Overview written from a template, used without Gemini.
   String get plainOverview {
+    if (Lang.hi) return _plainOverviewHi;
     final lab = labs;
     final who = '$name, $age, ${gender.toLowerCase()}';
     final phrases = concerns.map(concernPhrase).toList();
@@ -378,6 +424,27 @@ class CaseSheet {
       'Prakriti: $prakriti; Vikriti: $vikriti.',
       if (lab != null && !lab.sample && lab.flagged.isNotEmpty)
         'Lab values outside range: ${lab.flagged.map((t) => '${t.name} (${t.flag.toLowerCase()})').join(', ')}.',
+    ].join(' ');
+  }
+
+  /// [plainOverview] in Hindi. Intake values go through [tr]; names,
+  /// medicines and lab test names stay as entered or printed.
+  String get _plainOverviewHi {
+    final lab = labs;
+    final concern = concerns.isEmpty ? tr('no specific concern') : _andList(concerns.map(tr).toList());
+    final health = [
+      if (conditions.isNotEmpty) trf('Conditions: {x}', {'x': conditions.map(tr).join(', ')}),
+      if (medicines.isNotEmpty) trf('Medicines: {x}', {'x': medicines.join(', ')}),
+      if (pregnancy.isNotEmpty && pregnancy != 'No') tr(pregnancy),
+    ];
+    return [
+      trf('{name}, {age}, {gender}. Main concern: {concern}, for {since}.',
+          {'name': name, 'age': age, 'gender': tr(gender), 'concern': concern, 'since': tr(since)}),
+      if (health.isNotEmpty) '${health.join('; ')}।',
+      trf('Prakriti: {p}; Vikriti: {v}.', {'p': prakriti, 'v': vikriti}),
+      if (lab != null && !lab.sample && lab.flagged.isNotEmpty)
+        trf('Lab values outside range: {list}.',
+            {'list': lab.flagged.map((t) => '${t.name} (${t.flagWord})').join(', ')}),
     ].join(' ');
   }
 }

@@ -1,3 +1,5 @@
+import 'package:veda_verse/l10n/lang.dart';
+
 /// Current imbalance (Vikriti) from the quiz's 6 "last 2 weeks" questions,
 /// supported by the concerns the user picked in "Your story" (intake step 2).
 ///
@@ -88,10 +90,15 @@ class VikritiResult {
     return VikritiResult(votes: votes, raised: raised, signs: signs);
   }
 
+  /// The first [n] [signs] for a sentence, in the app's language:
+  /// "acidity or burning and skin issues" / "एसिडिटी या जलन और त्वचा की परेशानी".
+  String shownSigns([int n = 2]) => Lang.hi
+      ? signs.take(n).map(tr).join(' ${tr('and')} ')
+      : signs.take(n).map((s) => s.toLowerCase()).join(' and ');
+
   /// One plain sentence for the Dosha tab and result screen.
   String get summary {
-    if (raised == null) return 'No single dosha stands out right now.';
-    final shown = signs.take(2).map((s) => s.toLowerCase()).join(' and ');
-    return '$raised is raised right now — matches your $shown.';
+    if (raised == null) return tr('No single dosha stands out right now.');
+    return trf('{dosha} is raised right now — matches your {signs}.', {'dosha': tr(raised!), 'signs': shownSigns()});
   }
 }

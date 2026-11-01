@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:veda_verse/ai/gemini_client.dart';
 import 'package:veda_verse/ai/health_ai.dart';
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/screens/booking_screen.dart';
 import 'package:veda_verse/screens/vaidya_screen.dart';
 import 'package:veda_verse/state/app_state.dart';
@@ -31,7 +32,7 @@ class _ScanScreenState extends State<ScanScreen> {
     final a = await pickDocument(context, what: 'lab report');
     if (a == null || !mounted) return;
     if (!_ai.canRead) {
-      setState(() => _error = 'Reading reports works in the Android and iPhone app, or with the Gemini key. You can see a sample instead.');
+      setState(() => _error = tr('Reading reports works in the Android and iPhone app, or with the Gemini key. You can see a sample instead.'));
       return;
     }
     setState(() {
@@ -46,7 +47,7 @@ class _ScanScreenState extends State<ScanScreen> {
       _error = e.message;
     } catch (e) {
       debugPrint('Lab scan: $e');
-      _error = 'Couldn’t read this report. Check your internet and try a clearer photo or the PDF.';
+      _error = tr('Couldn’t read this report. Check your internet and try a clearer photo or the PDF.');
     }
     if (mounted) setState(() => _reading = false);
   }
@@ -73,7 +74,7 @@ class _ScanScreenState extends State<ScanScreen> {
                   children: [
                     const VvBackButton(),
                     const SizedBox(width: 12),
-                    const SerifTitle('Lab ', 'report', size: 25),
+                    SerifTitle(tr('Lab '), tr('report'), size: 25),
                   ],
                 ),
               ),
@@ -82,7 +83,7 @@ class _ScanScreenState extends State<ScanScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
                   children: [
                     if (_reading)
-                      _status(Icons.auto_awesome_outlined, '${_ai.configured ? 'Gemini' : 'Your phone'} is reading ${_file?.name ?? 'your report'}…', busy: true)
+                      _status(Icons.auto_awesome_outlined, trf(_ai.configured ? 'Gemini is reading {file}…' : 'Your phone is reading {file}…', {'file': _file?.name ?? tr('your report')}), busy: true)
                     else if (_error != null)
                       _errorBox(_error!)
                     else if (r == null)
@@ -98,7 +99,7 @@ class _ScanScreenState extends State<ScanScreen> {
                     Expanded(
                       flex: 10,
                       child: VvButton(
-                        label: r == null ? 'Scan a report' : 'Scan another',
+                        label: r == null ? tr('Scan a report') : tr('Scan another'),
                         fontSize: 15,
                         bg: r == null ? Vv.green : Vv.surface,
                         fg: r == null ? Vv.surface : Vv.ink,
@@ -112,7 +113,7 @@ class _ScanScreenState extends State<ScanScreen> {
                       Expanded(
                         flex: 13,
                         child: VvButton(
-                          label: 'Discuss with Vaidya',
+                          label: tr('Discuss with Vaidya'),
                           fontSize: 15,
                           onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => BookingScreen(vaidya: vaidyas.first))),
                         ),
@@ -150,17 +151,17 @@ class _ScanScreenState extends State<ScanScreen> {
           children: [
             const Icon(Icons.document_scanner_outlined, color: Vv.green, size: 28),
             const SizedBox(height: 10),
-            Text('Scan your blood or urine report', style: Vv.serif(20)),
+            Text(tr('Scan your blood or urine report'), style: Vv.serif(20)),
             const SizedBox(height: 6),
             Text(
               _ai.configured
-                  ? 'Take a photo or choose the PDF. Gemini reads each value and range, and VedaVerse shows which ones are outside the printed range, in simple words.'
-                  : 'Take a clear photo of the results table. Your phone reads each value and range, offline and free, and VedaVerse shows which ones are outside the printed range.',
+                  ? tr('Take a photo or choose the PDF. Gemini reads each value and range, and VedaVerse shows which ones are outside the printed range, in simple words.')
+                  : tr('Take a clear photo of the results table. Your phone reads each value and range, offline and free, and VedaVerse shows which ones are outside the printed range.'),
               style: Vv.sans(13, color: Vv.ink2, height: 1.5),
             ),
             if (!_ai.canRead) ...[
               const SizedBox(height: 10),
-              TextButton(onPressed: _showSample, child: Text('See a sample report', style: Vv.sans(13, weight: FontWeight.w800, color: Vv.green))),
+              TextButton(onPressed: _showSample, child: Text(tr('See a sample report'), style: Vv.sans(13, weight: FontWeight.w800, color: Vv.green))),
             ],
           ],
         ),
@@ -174,13 +175,13 @@ class _ScanScreenState extends State<ScanScreen> {
           children: [
             Text(text, style: Vv.sans(13, color: Vv.redInk, height: 1.5)),
             if (!_ai.canRead)
-              TextButton(onPressed: _showSample, child: Text('See a sample report', style: Vv.sans(13, weight: FontWeight.w800, color: Vv.redInk))),
+              TextButton(onPressed: _showSample, child: Text(tr('See a sample report'), style: Vv.sans(13, weight: FontWeight.w800, color: Vv.redInk))),
           ],
         ),
       );
 
   List<Widget> _result(LabReport r) {
-    final title = [if (r.lab.isNotEmpty) r.lab, if (r.date.isNotEmpty) r.date].join(' · ');
+    final title = r.sample ? tr('Sample report · example') : [if (r.lab.isNotEmpty) r.lab, if (r.date.isNotEmpty) r.date].join(' · ');
     return [
       VvCard(
         padding: const EdgeInsets.all(18),
@@ -198,19 +199,19 @@ class _ScanScreenState extends State<ScanScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title.isEmpty ? 'Lab report' : title, style: Vv.sans(15, weight: FontWeight.w800)),
+                  Text(title.isEmpty ? tr('Lab report') : title, style: Vv.sans(15, weight: FontWeight.w800)),
                   const SizedBox(height: 4),
                   Text(
                       switch (r.source) {
-                        LabSource.sample => 'Example values, not your report',
-                        LabSource.phone => 'Read on your phone, offline · check against your original',
-                        LabSource.gemini => 'Read by Gemini · check against your original',
+                        LabSource.sample => tr('Example values, not your report'),
+                        LabSource.phone => tr('Read on your phone, offline · check against your original'),
+                        LabSource.gemini => tr('Read by Gemini · check against your original'),
                       },
                       style: Vv.sans(12, color: Vv.muted)),
                   const SizedBox(height: 8),
                   Wrap(spacing: 6, runSpacing: 6, children: [
-                    _pill('${r.tests.length} values read', Vv.mint, Vv.green),
-                    if (r.sample) _pill('SAMPLE', Vv.goldPale, Vv.brown),
+                    _pill(trf('{n} values read', {'n': r.tests.length}), Vv.mint, Vv.green),
+                    if (r.sample) _pill(tr('SAMPLE'), Vv.goldPale, Vv.brown),
                   ]),
                 ],
               ),
@@ -225,7 +226,7 @@ class _ScanScreenState extends State<ScanScreen> {
         child: Text.rich(TextSpan(
           style: Vv.sans(14, height: 1.55),
           children: [
-            TextSpan(text: 'In plain words: ', style: Vv.sans(14, weight: FontWeight.w800)),
+            TextSpan(text: tr('In plain words: '), style: Vv.sans(14, weight: FontWeight.w800)),
             TextSpan(text: r.summary),
           ],
         )),
@@ -246,15 +247,15 @@ class _ScanScreenState extends State<ScanScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(t.name, style: Vv.sans(14, weight: FontWeight.w700)),
-                            if (t.range.isNotEmpty) Text('Range ${t.range}', style: Vv.sans(12, color: Vv.muted)),
+                            Text(r.nameOf(t), style: Vv.sans(14, weight: FontWeight.w700)),
+                            if (t.range.isNotEmpty) Text(trf('Range {range}', {'range': t.range}), style: Vv.sans(12, color: Vv.muted)),
                           ],
                         ),
                       ),
                       const SizedBox(width: 8),
                       Flexible(child: Text(t.valueWithUnit, textAlign: TextAlign.right, style: Vv.sans(14, weight: FontWeight.w800))),
                       const SizedBox(width: 10),
-                      _pill(t.flag == 'Unknown' ? '–' : t.flag, _pillBg(t.flag), _pillFg(t.flag), minWidth: 48),
+                      _pill(t.flagLabel, _pillBg(t.flag), _pillFg(t.flag), minWidth: 48),
                     ],
                   ),
                 ),
@@ -262,7 +263,7 @@ class _ScanScreenState extends State<ScanScreen> {
           ),
         ),
       const SizedBox(height: 14),
-      Text('Values are read by AI and may contain errors — check against your original report. This is not a diagnosis.',
+      Text(tr('Values are read by AI and may contain errors — check against your original report. This is not a diagnosis.'),
           style: Vv.sans(12, color: Vv.muted, height: 1.5)),
     ];
   }

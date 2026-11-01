@@ -13,11 +13,17 @@ import 'package:veda_verse/state/app_state.dart';
 class QuizStore {
   QuizStore._();
 
-  static const _kVersion = 'vv.model_version';
-  static const _kPrakriti = 'vv.prakriti_answers';
-  static const _kVikriti = 'vv.vikriti_answers';
-  static const _kDoneDate = 'vv.done_date';
-  static const _kDone = 'vv.done_ids';
+  /// The logged-in account's id. Each account's data is saved under its own
+  /// keys ("vv.u.ID.…"), so accounts on one phone never see each other's
+  /// results. Null only in tests.
+  static String? user;
+
+  static String _k(String name) => user == null ? 'vv.$name' : 'vv.u.$user.$name';
+  static String get _kVersion => _k('model_version');
+  static String get _kPrakriti => _k('prakriti_answers');
+  static String get _kVikriti => _k('vikriti_answers');
+  static String get _kDoneDate => _k('done_date');
+  static String get _kDone => _k('done_ids');
 
   static String _enc(List<int>? xs) => xs == null ? '' : xs.join(',');
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/screens/login_screen.dart';
 import 'package:veda_verse/state/app_state.dart';
 import 'package:veda_verse/theme/vv.dart';
@@ -35,19 +36,17 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   final Set<int> _on = {0, 1};
-  String _lang = 'EN';
 
   String get _hint {
     final n = _on.length;
-    if (n == 0) return 'Tap what sounds like you';
-    if (n == 1) return '1 sounds like you — let’s fix that';
-    return '$n sound like you — let’s fix that';
+    if (n == 0) return tr('Tap what sounds like you');
+    if (n == 1) return tr('1 sounds like you — let’s fix that');
+    return trf('{n} sound like you — let’s fix that', {'n': n});
   }
 
   void _go() {
     AppState.instance.update((s) {
       s.welcomeTiles = _on.map((i) => _tiles[i].label).toSet();
-      s.language = _lang;
       s.issues = {
         for (final i in _on)
           if (_tiles[i].label == 'Can’t sleep') 'Can’t sleep',
@@ -105,8 +104,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _langButton('EN', 13),
-                          _langButton('हिंदी', 14),
+                          _langButton('EN', Lang.en, 13),
+                          _langButton('हिंदी', Lang.hiCode, 14),
                         ],
                       ),
                     ),
@@ -118,17 +117,17 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     child: IgnorePointer(
                       child: Column(
                         children: [
-                          Text('VEDAVERSE IS FOR',
-                              style: Vv.sans(12, weight: FontWeight.w800, color: Vv.muted, letterSpacing: 1.6)),
+                          Text(tr('VEDAVERSE IS FOR'),
+                              style: Vv.sans(12, weight: FontWeight.w800, color: Vv.muted, letterSpacing: Lang.hi ? 0.4 : 1.6)),
                           const SizedBox(height: 12),
                           Text.rich(
                             TextSpan(
-                              style: Vv.serif(44, weight: FontWeight.w500, height: 0.98, letterSpacing: -0.5),
+                              style: Vv.serif(Lang.hi ? 34 : 44, weight: FontWeight.w500, height: Lang.hi ? 1.3 : 0.98, letterSpacing: -0.5),
                               children: [
-                                const TextSpan(text: 'EVERY BODY\nOUT OF '),
+                                TextSpan(text: tr('EVERY BODY\nOUT OF ')),
                                 TextSpan(
-                                  text: 'rhythm',
-                                  style: Vv.serif(44, weight: FontWeight.w500, italic: true, color: Vv.green, height: 0.98),
+                                  text: tr('rhythm'),
+                                  style: Vv.serif(Lang.hi ? 34 : 44, weight: FontWeight.w500, italic: true, color: Vv.green, height: Lang.hi ? 1.3 : 0.98),
                                 ),
                               ],
                             ),
@@ -136,7 +135,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'The stressed, the sleepless and the curious —\nwherever they live, in their own language.',
+                            tr('The stressed, the sleepless and the curious —\nwherever they live, in their own language.'),
                             textAlign: TextAlign.center,
                             style: Vv.serif(16, weight: FontWeight.w500, italic: true, color: Vv.ink2, height: 1.4),
                           ),
@@ -153,7 +152,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         Text(_hint, style: Vv.sans(12, weight: FontWeight.w700, color: Vv.ink2)),
                         const SizedBox(height: 8),
                         VvButton(
-                          label: 'Find my rhythm',
+                          label: tr('Find my rhythm'),
                           bg: Vv.deep,
                           fg: Vv.bg,
                           trailing: Icons.arrow_forward_rounded,
@@ -171,10 +170,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     );
   }
 
-  Widget _langButton(String l, double size) {
-    final on = _lang == l;
+  Widget _langButton(String l, String code, double size) {
+    final on = Lang.code == code;
     return VvTap(
-      onTap: () => setState(() => _lang = l),
+      // Switches the whole app, this screen included, at once.
+      onTap: () => Lang.set(code),
       child: Container(
         constraints: const BoxConstraints(minHeight: 36),
         padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -220,7 +220,7 @@ class _TileButton extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              tile.label,
+              tr(tile.label),
               style: Vv.sans(12.5, weight: FontWeight.w700, color: on ? Vv.surface : tile.ink, height: 1.25),
             ),
           ],

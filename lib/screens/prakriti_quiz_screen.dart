@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:veda_verse/l10n/lang.dart';
 import 'package:veda_verse/ml/dosha_predictor.dart';
 import 'package:veda_verse/screens/prakriti_result_screen.dart';
 import 'package:veda_verse/state/app_state.dart';
@@ -43,6 +44,19 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
     ('Right now', 'Almost ', 'there', 'Last three, still about the last two weeks.'),
   ];
 
+  /// [_stories] in Hindi, same order. Kept apart from the dictionary because
+  /// the title halves ("you", "day") are too generic to be shared keys.
+  static const _storiesHi = [
+    ('आपका शरीर', 'आपके शरीर की ', 'बनावट', 'सिर्फ़ इस हफ़्ते की नहीं, ज़्यादातर ज़िंदगी की बात सोचें।'),
+    ('आपका शरीर', 'छोटी-छोटी ', 'बातें', 'वो छोटी बातें जो सालों से वैसी ही हैं।'),
+    ('आपका शरीर', 'गर्मी और ', 'भूख', 'आपका शरीर गर्मी, मौसम और खाने को कैसे संभालता है।'),
+    ('पाचन', 'आपका ', 'पेट', 'कोई जवाब गलत नहीं। जो सबसे ज़्यादा आप जैसा लगे, वही चुनें।'),
+    ('मन और ऊर्जा', 'दिन और ', 'रात', 'आराम, काम और बातचीत की आपकी स्वाभाविक लय।'),
+    ('मन और ऊर्जा', 'आप कैसे ', 'सोचते हैं', 'ज़्यादातर समय आप कैसे सीखते, महसूस करते और प्रतिक्रिया देते हैं।'),
+    ('अभी', 'पिछले ', 'दो हफ़्ते', 'यह आपका अभी का हाल दिखाता है, आपकी प्रकृति नहीं।'),
+    ('अभी', 'बस ', 'थोड़ा और', 'आखिरी तीन, अब भी पिछले दो हफ़्तों के बारे में।'),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -52,7 +66,7 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
         _nBase = m.questions.length;
         _qs = [
           for (final (i, q) in [...m.questions, ...m.vikritiQuestions].indexed)
-            _Q(q.title, q.options, _shuffled(i, q.options.length)),
+            _Q(q, _shuffled(i, q.options.length)),
         ];
       });
     });
@@ -142,8 +156,10 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
     }
     final pct = _pct;
     final lead = _ans.isEmpty
-        ? 'Answer to see'
-        : '${['Vata', 'Pitta', 'Kapha'][[pct['v']!, pct['p']!, pct['k']!].indexOf([pct['v']!, pct['p']!, pct['k']!].reduce((a, b) => a > b ? a : b))]} leading';
+        ? tr('Answer to see')
+        : trf('{dosha} leading', {
+            'dosha': tr(['Vata', 'Pitta', 'Kapha'][[pct['v']!, pct['p']!, pct['k']!].indexOf([pct['v']!, pct['p']!, pct['k']!].reduce((a, b) => a > b ? a : b))]),
+          });
     final isLast = _page == _pages - 1;
     final done = _pageDone(_page);
 
@@ -204,7 +220,12 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
                             crossAxisAlignment: CrossAxisAlignment.baseline,
                             textBaseline: TextBaseline.alphabetic,
                             children: [
-                              Text('YOUR NATURE SO FAR', style: Vv.sans(11, weight: FontWeight.w800, color: Vv.onDeepMuted, letterSpacing: 1)),
+                              Flexible(
+                                child: Text(tr('YOUR NATURE SO FAR'),
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Vv.sans(11, weight: FontWeight.w800, color: Vv.onDeepMuted, letterSpacing: 1)),
+                              ),
+                              const SizedBox(width: 8),
                               Text(lead, style: Vv.serif(15, weight: FontWeight.w700, color: Vv.bg)),
                             ],
                           ),
@@ -229,7 +250,7 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
                             children: [
                               for (final e in [('Vata', pct['v']), ('Pitta', pct['p']), ('Kapha', pct['k'])])
                                 Expanded(
-                                  child: Text('${e.$1} ${e.$2}%', style: Vv.sans(11, weight: FontWeight.w700, color: Vv.bg)),
+                                  child: Text('${tr(e.$1)} ${e.$2}%', style: Vv.sans(11, weight: FontWeight.w700, color: Vv.bg)),
                                 ),
                             ],
                           ),
@@ -264,7 +285,7 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(color: Vv.border3, width: 1.5),
                           ),
-                          child: Text('Back', style: Vv.sans(15, weight: FontWeight.w700)),
+                          child: Text(tr('Back'), style: Vv.sans(15, weight: FontWeight.w700)),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -272,8 +293,8 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
                     Expanded(
                       child: VvButton(
                         label: isLast
-                            ? (_busy ? 'Reading your answers…' : 'See my Prakriti')
-                            : (done ? 'Next' : (_warn ? 'Answer the marked one' : 'Next')),
+                            ? (_busy ? tr('Reading your answers…') : tr('See my Prakriti'))
+                            : (done ? tr('Next') : (_warn ? tr('Answer the marked one') : tr('Next'))),
                         height: 56,
                         fontSize: 15,
                         weight: FontWeight.w800,
@@ -297,13 +318,13 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
   Widget _seg(int w, Color c) => w <= 0 ? const SizedBox.shrink() : Expanded(flex: w, child: Container(color: c));
 
   Widget _basePage() {
-    final st = _stories[_page % _stories.length];
+    final st = (Lang.hi ? _storiesHi : _stories)[_page % _stories.length];
     final base = _page * _perPage;
     return ListView(
       key: ValueKey('p$_page'),
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
       children: [
-        Text('${st.$1.toUpperCase()} · PAGE ${_page + 1} OF $_pages',
+        Text(trf('{section} · PAGE {n} OF {total}', {'section': st.$1.toUpperCase(), 'n': _page + 1, 'total': _pages}),
             style: Vv.kicker(_onVikritiPage ? Vv.blue : Vv.brown, spacing: 1.2)),
         const SizedBox(height: 4),
         SerifTitle(st.$2, st.$3, size: 28, bColor: Vv.green, height: 1.1),
@@ -420,8 +441,16 @@ class _PrakritiQuizScreenState extends State<PrakritiQuizScreen> {
 }
 
 class _Q {
-  final String title;
-  final List<String> options; // [Vata, Pitta, Kapha]
+  final QuizQuestion q;
   final List<int> order; // display position -> option index
-  const _Q(this.title, this.options, this.order);
+  const _Q(this.q, this.order);
+
+  /// Question text in the app's language (Hindi from the model, if present).
+  String get title => Lang.hi ? (q.titleHi ?? q.title) : q.title;
+
+  /// Options in [Vata, Pitta, Kapha] order, in the app's language.
+  List<String> get options {
+    final hi = q.optionsHi;
+    return Lang.hi && hi != null && hi.length == q.options.length ? hi : q.options;
+  }
 }
